@@ -166,8 +166,8 @@ def fetch_brent_crude():
     sector    = "energy"
     try:
         # Tickers to try in order — Stooq occasionally changes futures codes
-        # lcox.f = ICE Brent, cl.f = WTI (close proxy), brent.f = spot
-        url  = "https://stooq.com/q/d/l/?s=lcox.f&i=d"
+        # cb.f = ICE Brent, cl.f = WTI (close proxy), brent.f = spot
+        url  = "https://stooq.com/q/d/l/?s=cb.f&i=d"
         # If 403/404, also try: s=brent.f or s=cb.f
         resp = SESSION.get(url, timeout=TIMEOUT)
         resp.raise_for_status()
