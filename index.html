@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSI Global — Community Supply Chain Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:      #0d1117;
+    --ink2:     #1c2333;
+    --surface:  #161b27;
+    --card:     #1a2035;
+    --border:   #263050;
+    --border2:  #1e2a45;
+    --ok:       #00e5a0;
+    --ok-bg:    rgba(0,229,160,0.08);
+    --ok-glow:  rgba(0,229,160,0.25);
+    --watch:    #ffb800;
+    --watch-bg: rgba(255,184,0,0.08);
+    --watch-glow: rgba(255,184,0,0.25);
+    --alert:    #ff3d57;
+    --alert-bg: rgba(255,61,87,0.08);
+    --alert-glow: rgba(255,61,87,0.3);
+    --manual:   #7a8aaa;
+    --manual-bg:rgba(122,138,170,0.08);
+    --error:    #444e6a;
+    --error-bg: rgba(68,78,106,0.1);
+    --text:     #e2e8f8;
+    --text2:    #8896b8;
+    --text3:    #4a5a7a;
+    --accent:   #3d7fff;
+    --accent2:  #00e5a0;
+    --mono:     'IBM Plex Mono', monospace;
+    --sans:     'Inter', sans-serif;
+    --display:  'Syne', sans-serif;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--ink);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── GRID BACKGROUND ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(61,127,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(61,127,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative;
+    z-index: 10;
+    padding: 32px 48px 28px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(13,17,23,0.98) 0%, rgba(22,27,39,0.95) 100%);
+    backdrop-filter: blur(10px);
+  }
+
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .logo-block {}
+
+  .logo-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  .logo-title {
+    font-family: var(--display);
+    font-size: 28px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+
+  .logo-title span {
+    color: var(--accent2);
+  }
+
+  .logo-sub {
+    font-size: 12px;
+    color: var(--text2);
+    margin-top: 6px;
+    font-weight: 300;
+  }
+
+  .header-status {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+
+  .platform-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1px solid;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .platform-badge.ok    { background: var(--ok-bg);    border-color: var(--ok);    color: var(--ok);    }
+  .platform-badge.watch { background: var(--watch-bg); border-color: var(--watch); color: var(--watch); }
+  .platform-badge.alert { background: var(--alert-bg); border-color: var(--alert); color: var(--alert);
+    box-shadow: 0 0 20px var(--alert-glow); animation: pulse-alert 2s ease-in-out infinite; }
+
+  @keyframes pulse-alert {
+    0%,100% { box-shadow: 0 0 20px var(--alert-glow); }
+    50%      { box-shadow: 0 0 35px var(--alert-glow), 0 0 60px rgba(255,61,87,0.1); }
+  }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .platform-badge.alert .status-dot { animation: blink 1s step-end infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  .update-time {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 1px;
+  }
+
+  /* ── ALERT BANNER ── */
+  .alert-banner {
+    position: relative;
+    z-index: 9;
+    background: var(--alert-bg);
+    border-bottom: 1px solid rgba(255,61,87,0.3);
+    padding: 10px 48px;
+    display: none;
+  }
+
+  .alert-banner.visible { display: block; }
+
+  .alert-banner-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .alert-banner-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--alert);
+    white-space: nowrap;
+  }
+
+  .alert-items {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .alert-item {
+    font-size: 12px;
+    color: rgba(255,61,87,0.85);
+    padding: 2px 8px;
+    border: 1px solid rgba(255,61,87,0.3);
+    border-radius: 3px;
+  }
+
+  /* ── NAV PILLS ── */
+  .nav-wrap {
+    position: relative;
+    z-index: 9;
+    padding: 16px 48px;
+    border-bottom: 1px solid var(--border2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .nav-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-right: 8px;
+  }
+
+  .nav-pill {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 5px 14px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all .15s;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+  }
+
+  .nav-pill:hover { border-color: var(--accent); color: var(--accent); }
+  .nav-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* ── MAIN CONTENT ── */
+  main {
+    position: relative;
+    z-index: 1;
+    padding: 32px 48px;
+    max-width: 1400px;
+  }
+
+  /* ── SUMMARY ROW ── */
+  .summary-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 36px;
+  }
+
+  .summary-tile {
+    background: var(--card);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .summary-tile::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .summary-tile.ok::after    { background: var(--ok); }
+  .summary-tile.watch::after { background: var(--watch); }
+  .summary-tile.alert::after { background: var(--alert); }
+  .summary-tile.err::after   { background: var(--error); }
+
+  .stile-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 6px;
+  }
+
+  .stile-val {
+    font-family: var(--display);
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .summary-tile.ok    .stile-val { color: var(--ok); }
+  .summary-tile.watch .stile-val { color: var(--watch); }
+  .summary-tile.alert .stile-val { color: var(--alert); }
+  .summary-tile.err   .stile-val { color: var(--text3); }
+
+  .stile-note {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 4px;
+  }
+
+  /* ── SECTOR HEADERS ── */
+  .sector-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 28px 0 14px;
+  }
+
+  .sector-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+
+  .sector-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border2);
+  }
+
+  /* ── INDICATOR GRID ── */
+  .indicator-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  /* ── INDICATOR CARD ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color .2s, transform .2s;
+    cursor: default;
+  }
+
+  .card:hover { transform: translateY(-1px); }
+
+  .card.ok     { border-left: 3px solid var(--ok);    }
+  .card.watch  { border-left: 3px solid var(--watch); }
+  .card.alert  { border-left: 3px solid var(--alert); box-shadow: -3px 0 20px var(--alert-glow); }
+  .card.manual { border-left: 3px solid var(--manual);}
+  .card.error  { border-left: 3px solid var(--error); opacity: 0.6; }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .card-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.4;
+    flex: 1;
+  }
+
+  .card-status {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 3px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .card-status.ok     { background: var(--ok-bg);     color: var(--ok);     border: 1px solid rgba(0,229,160,0.2); }
+  .card-status.watch  { background: var(--watch-bg);  color: var(--watch);  border: 1px solid rgba(255,184,0,0.2); }
+  .card-status.alert  { background: var(--alert-bg);  color: var(--alert);  border: 1px solid rgba(255,61,87,0.3); }
+  .card-status.manual { background: var(--manual-bg); color: var(--manual); border: 1px solid rgba(122,138,170,0.2); }
+  .card-status.error  { background: var(--error-bg);  color: var(--text3);  border: 1px solid var(--border2); }
+
+  .card-value {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 500;
+    color: #fff;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .card-value.ok    { color: var(--ok); }
+  .card-value.watch { color: var(--watch); }
+  .card-value.alert { color: var(--alert); }
+
+  .card-unit {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    margin-left: 4px;
+    font-weight: 400;
+    font-size: 12px;
+  }
+
+  .card-region {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .card-notes {
+    font-size: 11px;
+    color: var(--text2);
+    line-height: 1.55;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border2);
+    display: none;
+  }
+
+  .card:hover .card-notes { display: block; }
+
+  .card-source {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    margin-top: 8px;
+    letter-spacing: .5px;
+  }
+
+  /* ── REGION FILTER ACTIVE ── */
+  .region-section { display: block; }
+  .region-section.hidden { display: none; }
+
+  /* ── FOOTER ── */
+  footer {
+    position: relative;
+    z-index: 1;
+    padding: 24px 48px;
+    border-top: 1px solid var(--border2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 48px;
+  }
+
+  .footer-left {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    line-height: 1.8;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 20px;
+  }
+
+  .footer-links a {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    text-decoration: none;
+    letter-spacing: .5px;
+  }
+
+  .footer-links a:hover { color: var(--accent2); }
+
+  /* ── LOADING / ERROR STATES ── */
+  .loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 48px;
+    gap: 16px;
+  }
+
+  .loading-spinner {
+    width: 32px; height: 32px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text3);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* ── STAGGER ANIMATIONS ── */
+  .card {
+    animation: fadeUp 0.4s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform: translateY(8px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    header, .nav-wrap, main, footer { padding-left: 20px; padding-right: 20px; }
+    .logo-title { font-size: 22px; }
+    .indicator-grid { grid-template-columns: 1fr; }
+    .summary-row { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="logo-block">
+      <div class="logo-eyebrow">Community Supply Chain Intelligence</div>
+      <div class="logo-title">CSI <span>Global</span></div>
+      <div class="logo-sub">Real-time energy &amp; water shock early warning for vulnerable communities</div>
+    </div>
+    <div class="header-status">
+      <div class="platform-badge ok" id="platform-badge">
+        <div class="status-dot"></div>
+        <span id="platform-status-text">Loading...</span>
+      </div>
+      <div class="update-time" id="update-time">—</div>
+    </div>
+  </div>
+</header>
+
+<div class="alert-banner" id="alert-banner">
+  <div class="alert-banner-inner">
+    <div class="alert-banner-label">⚠ Active Alerts</div>
+    <div class="alert-items" id="alert-items"></div>
+  </div>
+</div>
+
+<div class="nav-wrap">
+  <span class="nav-label">Filter</span>
+  <button class="nav-pill active" onclick="filterSector('all', this)">All</button>
+  <button class="nav-pill" onclick="filterSector('energy', this)">Energy</button>
+  <button class="nav-pill" onclick="filterSector('chokepoint', this)">Chokepoints</button>
+  <button class="nav-pill" onclick="filterSector('food', this)">Food</button>
+  <button class="nav-pill" onclick="filterSector('freight', this)">Freight</button>
+  <button class="nav-pill" onclick="filterSector('water', this)">Water</button>
+  <button class="nav-pill" onclick="filterSector('geopolitical', this)">Geopolitical</button>
+  <button class="nav-pill" onclick="filterSector('wash', this)">WASH</button>
+  <button class="nav-pill" onclick="filterSector('currency', this)">Currency</button>
+</div>
+
+<main id="main-content">
+  <div class="loading-state" id="loading">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Fetching intelligence data...</div>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-left">
+    Community Supply Chain Intelligence (CSI) · Global Platform v1.0<br>
+    Monitoring energy, food, freight, water, and geopolitical supply chain signals<br>
+    Built on open data · Updated every 6 hours via GitHub Actions
+  </div>
+  <div class="footer-links">
+    <a href="https://criticalto.ca" target="_blank">Critical TO →</a>
+    <a href="https://data.criticalto.ca" target="_blank">Toronto TII →</a>
+    <a href="csi_data_latest.json" target="_blank">Raw JSON →</a>
+  </div>
+</footer>
+
+<script>
+// ── SECTOR CONFIG ────────────────────────────────────────────────────────────
+const SECTOR_META = {
+  energy:      { label: "Energy",           icon: "⚡", order: 1 },
+  chokepoint:  { label: "Maritime Chokepoints", icon: "🚢", order: 2 },
+  food:        { label: "Food Prices",      icon: "🌾", order: 3 },
+  freight:     { label: "Freight & Shipping", icon: "📦", order: 4 },
+  water:       { label: "Water",            icon: "💧", order: 5 },
+  geopolitical:{ label: "Geopolitical Signals", icon: "🌐", order: 6 },
+  wash:        { label: "WASH — Water Access", icon: "🪣", order: 7 },
+  currency:    { label: "Currency Stress",  icon: "💱", order: 8 },
+};
+
+// ── DATA LOADING ─────────────────────────────────────────────────────────────
+let ALL_DATA = [];
+let CURRENT_FILTER = 'all';
+
+async function loadData() {
+  try {
+    const resp = await fetch('csi_data_latest.json?t=' + Date.now());
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const payload = await resp.json();
+    ALL_DATA = payload.indicators || [];
+    renderAll(payload);
+  } catch (err) {
+    document.getElementById('loading').innerHTML = `
+      <div style="font-family:var(--mono);font-size:12px;color:var(--alert);text-align:center;letter-spacing:1px">
+        FAILED TO LOAD DATA<br>
+        <span style="color:var(--text3);font-size:11px;margin-top:8px;display:block">${err.message}</span>
+        <span style="color:var(--text3);font-size:10px;margin-top:4px;display:block">
+          Ensure csi_data_latest.json exists in this repo and GitHub Pages is enabled.
+        </span>
+      </div>`;
+  }
+}
+
+// ── RENDER ALL ───────────────────────────────────────────────────────────────
+function renderAll(payload) {
+  const meta = payload.meta || {};
+  
+  // Platform badge
+  const badge   = document.getElementById('platform-badge');
+  const status  = meta.platform_status || 'ok';
+  badge.className = `platform-badge ${status}`;
+  document.getElementById('platform-status-text').textContent =
+    status === 'ok' ? 'ALL SYSTEMS NORMAL' :
+    status === 'watch' ? 'ELEVATED — WATCH' : 'ALERTS ACTIVE';
+
+  // Timestamp
+  if (meta.generated_utc) {
+    const d = new Date(meta.generated_utc);
+    document.getElementById('update-time').textContent =
+      'Updated ' + d.toUTCString().replace('GMT', 'UTC');
+  }
+
+  // Alert banner
+  const alerts = meta.alert_summary || [];
+  if (alerts.length > 0) {
+    const banner = document.getElementById('alert-banner');
+    banner.classList.add('visible');
+    document.getElementById('alert-items').innerHTML = alerts
+      .map(a => `<div class="alert-item">${a.indicator}</div>`)
+      .join('');
+  }
+
+  // Summary tiles
+  const counts = meta.counts || {};
+  renderSummary(counts);
+
+  // Indicator cards
+  renderCards(ALL_DATA);
+}
+
+// ── SUMMARY TILES ─────────────────────────────────────────────────────────────
+function renderSummary(counts) {
+  const tiles = [
+    { key:'ok',    label:'Normal',  cls:'ok'    },
+    { key:'watch', label:'Watch',   cls:'watch' },
+    { key:'alert', label:'Alert',   cls:'alert' },
+    { key:'manual',label:'Manual',  cls:'err'   },
+    { key:'error', label:'Errors',  cls:'err'   },
+  ];
+  const total = Object.values(counts).reduce((a,b)=>a+b,0);
+  const html = `
+    <div class="summary-tile err">
+      <div class="stile-label">Total signals</div>
+      <div class="stile-val" style="color:var(--text)">${total}</div>
+      <div class="stile-note">indicators monitored</div>
+    </div>
+    ${tiles.map(t => `
+      <div class="summary-tile ${t.cls}">
+        <div class="stile-label">${t.label}</div>
+        <div class="stile-val">${counts[t.key] || 0}</div>
+        <div class="stile-note">indicators</div>
+      </div>
+    `).join('')}
+  `;
+  const main = document.getElementById('main-content');
+  main.innerHTML = `<div class="summary-row">${html}</div><div id="sectors"></div>`;
+}
+
+// ── RENDER CARDS ─────────────────────────────────────────────────────────────
+function renderCards(data) {
+  // Group by sector
+  const bySector = {};
+  data.forEach(ind => {
+    const s = ind.sector || 'other';
+    if (!bySector[s]) bySector[s] = [];
+    bySector[s].push(ind);
+  });
+
+  // Sort sectors by defined order
+  const sectorOrder = Object.entries(SECTOR_META)
+    .sort((a,b) => a[1].order - b[1].order)
+    .map(e => e[0]);
+
+  const sectorsDiv = document.getElementById('sectors');
+  if (!sectorsDiv) return;
+  sectorsDiv.innerHTML = '';
+
+  sectorOrder.forEach((sector, si) => {
+    const indicators = bySector[sector] || [];
+    if (!indicators.length) return;
+
+    const meta = SECTOR_META[sector] || { label: sector, icon: '◆' };
+    const hidden = (CURRENT_FILTER !== 'all' && CURRENT_FILTER !== sector) ? 'hidden' : '';
+
+    const cardsHtml = indicators.map((ind, ci) => {
+      const delay = (si * 50 + ci * 30);
+      return cardHtml(ind, delay);
+    }).join('');
+
+    sectorsDiv.innerHTML += `
+      <div class="region-section ${hidden}" data-sector="${sector}">
+        <div class="sector-header">
+          <span style="font-size:16px">${meta.icon}</span>
+          <span class="sector-label">${meta.label}</span>
+          <div class="sector-line"></div>
+          <span class="sector-label">${indicators.length} signal${indicators.length!==1?'s':''}</span>
+        </div>
+        <div class="indicator-grid">${cardsHtml}</div>
+      </div>
+    `;
+  });
+}
+
+// ── CARD HTML ─────────────────────────────────────────────────────────────────
+function cardHtml(ind, delay) {
+  const st       = ind.status || 'error';
+  const hasValue = ind.value !== null && ind.value !== undefined;
+  const valStr   = hasValue ? formatValue(ind.value, ind.unit) : '—';
+  const unitStr  = hasValue ? `<span class="card-unit">${escHtml(ind.unit)}</span>` : '';
+  const region   = ind.region && ind.region !== 'global'
+    ? `<div class="card-region">${escHtml(ind.region)}</div>` : '';
+  const notes    = ind.notes
+    ? `<div class="card-notes">${escHtml(ind.notes)}<div class="card-source">↳ ${escHtml(ind.source)}</div></div>` : '';
+
+  return `
+    <div class="card ${st}" style="animation-delay:${delay}ms" title="${escAttr(ind.notes||'')}">
+      <div class="card-top">
+        <div class="card-name">${escHtml(ind.indicator)}</div>
+        <div class="card-status ${st}">${statusLabel(st)}</div>
+      </div>
+      ${region}
+      <div class="card-value ${st}">${valStr}${unitStr}</div>
+      ${notes}
+    </div>
+  `;
+}
+
+// ── FILTER ────────────────────────────────────────────────────────────────────
+function filterSector(sector, btn) {
+  CURRENT_FILTER = sector;
+  document.querySelectorAll('.nav-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.region-section').forEach(section => {
+    if (sector === 'all' || section.dataset.sector === sector) {
+      section.classList.remove('hidden');
+    } else {
+      section.classList.add('hidden');
+    }
+  });
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function statusLabel(st) {
+  return { ok:'normal', watch:'watch', alert:'alert', manual:'manual', error:'error' }[st] || st;
+}
+
+function formatValue(val, unit) {
+  if (val === null || val === undefined) return '—';
+  if (typeof val === 'number') {
+    // Large integers
+    if (Number.isInteger(val) && val > 999) return val.toLocaleString();
+    // Small floats (currency, GDELT)
+    if (Math.abs(val) < 1) return val.toFixed(5);
+    // Regular floats
+    if (!Number.isInteger(val)) return val.toFixed(2);
+    return val.toString();
+  }
+  return String(val);
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+function escAttr(str) {
+  return String(str).replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+loadData();
+
+// Auto-refresh every 10 minutes
+setInterval(loadData, 10 * 60 * 1000);
+</script>
+</body>
+</html>
