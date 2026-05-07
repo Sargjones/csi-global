@@ -1,0 +1,53 @@
+name: CSI Global Scraper
+
+on:
+  schedule:
+    # Every 6 hours: 00:00, 06:00, 12:00, 18:00 UTC
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      sector:
+        description: "Run single sector (leave blank for all)"
+        required: false
+        default: ""
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+
+      - name: Run scraper
+        env:
+          EIA_API_KEY: ${{ secrets.EIA_API_KEY }}
+          OPENEXCHANGERATES_APP_ID: ${{ secrets.OPENEXCHANGERATES_APP_ID }}
+          AISSTREAM_API_KEY: ${{ secrets.AISSTREAM_API_KEY }}
+        run: |
+          if [ -n "${{ github.event.inputs.sector }}" ]; then
+            python csi_scraper.py --sector ${{ github.event.inputs.sector }}
+          else
+            python csi_scraper.py
+          fi
+
+      - name: Commit updated JSON
+        run: |
+          git config user.name  "CSI Scraper"
+          git config user.email "csi-scraper@users.noreply.github.com"
+          git add csi_data_latest.json csi_data_*.json || true
+          git diff --cached --quiet || git commit -m "data: scraper run $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push
+
+      - name: Alert notification (if alerts fired)
+        if: failure()
+        run: echo "Scraper exited with alert status - review csi_data_latest.json"
