@@ -2,19 +2,19 @@
   "meta": {
     "platform": "Community Supply Chain Intelligence (CSI)",
     "version": "1.0",
-    "generated_utc": "2026-05-08T02:38:16.910246+00:00",
+    "generated_utc": "2026-05-08T07:27:06.235116+00:00",
     "platform_status": "alert",
     "counts": {
-      "ok": 14,
+      "ok": 10,
       "watch": 2,
       "alert": 3,
-      "error": 3,
+      "error": 7,
       "manual": 9
     },
     "alert_summary": [
       {
         "indicator": "Maritime Chokepoint News Volume",
-        "notes": "Monitors news coverage of maritime chokepoint disruption events. Current: 1.5849% of global coverage. 7-day avg: 1.5870%. Trend: ↑ rising."
+        "notes": "Monitors news coverage of maritime chokepoint disruption events. Current: 1.7967% of global coverage. 7-day avg: 1.6037%. Trend: ↑ rising."
       },
       {
         "indicator": "ETB / USD (Ethiopian Birr)",
@@ -36,7 +36,7 @@
       "notes": "ERROR: No data rows",
       "sector": "energy",
       "region": "global",
-      "ts": "2026-05-08T02:35:06.715169+00:00"
+      "ts": "2026-05-08T07:22:45.803947+00:00"
     },
     {
       "indicator": "LNG / Natural Gas Spot",
@@ -47,7 +47,7 @@
       "notes": "Henry Hub natural gas at $1.78/MMBtu.",
       "sector": "energy",
       "region": "global",
-      "ts": "2026-05-08T02:35:07.371489+00:00"
+      "ts": "2026-05-08T07:22:46.529863+00:00"
     },
     {
       "indicator": "Chokepoint — Strait of Hormuz",
@@ -55,43 +55,43 @@
       "unit": "",
       "source": "GDELT proxy",
       "status": "error",
-      "notes": "ERROR: Expecting value: line 1 column 1 (char 0)",
+      "notes": "ERROR: HTTPSConnectionPool(host='api.gdeltproject.org', port=443): Max retries exceeded with url: /api/v2/doc/doc?query=%22Strait%20of%20Hormuz%22%20disruption%20OR%20closure%20OR%20attack%20OR%20blockade&mode=artlist&maxrecords=10&format=json&timespan=7d (Caused by ConnectTimeoutError(<HTTPSConnection(host='api.gdeltproject.org', port=443) at 0x7f4b3c0dd910>, 'Connection to api.gdeltproject.org timed out. (connect timeout=30)'))",
       "sector": "chokepoint",
       "region": "global",
-      "ts": "2026-05-08T02:35:15.232748+00:00"
+      "ts": "2026-05-08T07:23:17.083272+00:00"
     },
     {
       "indicator": "Chokepoint — Bab-el-Mandeb",
-      "value": 0,
-      "unit": "news items (7d)",
+      "value": null,
+      "unit": "",
       "source": "GDELT proxy",
-      "status": "ok",
-      "notes": "No significant disruption news for Bab-el-Mandeb in past 7 days. (AIS key not set — set AISSTREAM_API_KEY for vessel counts.)",
+      "status": "error",
+      "notes": "ERROR: Expecting value: line 1 column 1 (char 0)",
       "sector": "chokepoint",
       "region": "global",
-      "ts": "2026-05-08T02:35:22.850585+00:00"
+      "ts": "2026-05-08T07:23:36.741206+00:00"
     },
     {
       "indicator": "Chokepoint — Suez Canal",
-      "value": 0,
-      "unit": "news items (7d)",
+      "value": null,
+      "unit": "",
       "source": "GDELT proxy",
-      "status": "ok",
-      "notes": "No significant disruption news for Suez Canal in past 7 days. (AIS key not set — set AISSTREAM_API_KEY for vessel counts.)",
+      "status": "error",
+      "notes": "ERROR: Expecting value: line 1 column 1 (char 0)",
       "sector": "chokepoint",
       "region": "global",
-      "ts": "2026-05-08T02:35:33.189284+00:00"
+      "ts": "2026-05-08T07:23:54.221994+00:00"
     },
     {
       "indicator": "Chokepoint — Strait of Malacca",
-      "value": 0,
-      "unit": "news items (7d)",
+      "value": null,
+      "unit": "",
       "source": "GDELT proxy",
-      "status": "ok",
-      "notes": "No significant disruption news for Strait of Malacca in past 7 days. (AIS key not set — set AISSTREAM_API_KEY for vessel counts.)",
+      "status": "error",
+      "notes": "ERROR: Expecting value: line 1 column 1 (char 0)",
       "sector": "chokepoint",
       "region": "global",
-      "ts": "2026-05-08T02:35:40.050702+00:00"
+      "ts": "2026-05-08T07:24:12.191801+00:00"
     },
     {
       "indicator": "FAO Food Price Index (FFPI)",
@@ -102,7 +102,7 @@
       "notes": "FAO FFPI: 128.5 points (March 2026). Base period 2014–2016 = 100. Food prices elevated — household food budgets under pressure in import-dependent communities.",
       "sector": "food",
       "region": "global",
-      "ts": "2026-05-08T02:35:40.246705+00:00"
+      "ts": "2026-05-08T07:24:12.315883+00:00"
     },
     {
       "indicator": "FAO Cereals Price Index",
@@ -113,7 +113,7 @@
       "notes": "FAOSTAT API 521 — retrieve from fao.org/worldfoodsituation manually",
       "sector": "food",
       "region": "global",
-      "ts": "2026-05-08T02:35:57.732672+00:00"
+      "ts": "2026-05-08T07:24:38.907099+00:00"
     },
     {
       "indicator": "FAO Vegetable Oils Price Index",
@@ -124,7 +124,7 @@
       "notes": "FAOSTAT API 521 — retrieve from fao.org/worldfoodsituation manually",
       "sector": "food",
       "region": "global",
-      "ts": "2026-05-08T02:36:15.978151+00:00"
+      "ts": "2026-05-08T07:25:05.228450+00:00"
     },
     {
       "indicator": "FAO Dairy Price Index",
@@ -135,7 +135,7 @@
       "notes": "FAOSTAT API 521 — retrieve from fao.org/worldfoodsituation manually",
       "sector": "food",
       "region": "global",
-      "ts": "2026-05-08T02:36:33.227566+00:00"
+      "ts": "2026-05-08T07:25:33.552391+00:00"
     },
     {
       "indicator": "FAO Meat Price Index",
@@ -146,7 +146,7 @@
       "notes": "FAOSTAT API 521 — retrieve from fao.org/worldfoodsituation manually",
       "sector": "food",
       "region": "global",
-      "ts": "2026-05-08T02:36:52.473365+00:00"
+      "ts": "2026-05-08T07:26:00.874369+00:00"
     },
     {
       "indicator": "FAO Sugar Price Index",
@@ -157,7 +157,7 @@
       "notes": "FAOSTAT API 521 — retrieve from fao.org/worldfoodsituation manually",
       "sector": "food",
       "region": "global",
-      "ts": "2026-05-08T02:37:09.719499+00:00"
+      "ts": "2026-05-08T07:26:28.202613+00:00"
     },
     {
       "indicator": "Baltic Dry Index (BDI)",
@@ -168,7 +168,7 @@
       "notes": "ERROR: list index out of range",
       "sector": "freight",
       "region": "global",
-      "ts": "2026-05-08T02:37:10.501090+00:00"
+      "ts": "2026-05-08T07:26:28.913007+00:00"
     },
     {
       "indicator": "Freightos Baltic Index (FBX)",
@@ -179,7 +179,7 @@
       "notes": "Freightos Baltic Index (FBX): $1,932/FEU. Normal shipping costs.",
       "sector": "freight",
       "region": "global",
-      "ts": "2026-05-08T02:37:11.547902+00:00"
+      "ts": "2026-05-08T07:26:29.324580+00:00"
     },
     {
       "indicator": "GloFAS Global Water Stress Signal",
@@ -190,7 +190,7 @@
       "notes": "GloFAS seasonal outlook — no exceptional water stress signals detected. Review globalfloods.eu for detailed basin analysis.",
       "sector": "water",
       "region": "global",
-      "ts": "2026-05-08T02:37:14.368169+00:00"
+      "ts": "2026-05-08T07:26:31.085233+00:00"
     },
     {
       "indicator": "Global Safe Water Access (JMP)",
@@ -201,51 +201,51 @@
       "notes": "Static annual indicator. ~2.2B people lack safely managed drinking water (JMP 2025). Update annually from washdata.org.",
       "sector": "water",
       "region": "global",
-      "ts": "2026-05-08T02:37:14.368183+00:00"
+      "ts": "2026-05-08T07:26:31.085253+00:00"
     },
     {
       "indicator": "Supply Shock News Volume",
-      "value": 0.0584,
+      "value": 0.0615,
       "unit": "% global coverage",
       "source": "GDELT DOC 2.0",
       "status": "watch",
-      "notes": "Monitors global news volume mentioning supply chain disruption across energy and food sectors. Current: 0.0584% of global coverage. 7-day avg: 0.0948%. Trend: → stable.",
+      "notes": "Monitors global news volume mentioning supply chain disruption across energy and food sectors. Current: 0.0615% of global coverage. 7-day avg: 0.0920%. Trend: → stable.",
       "sector": "geopolitical",
       "region": "global",
-      "ts": "2026-05-08T02:37:28.108848+00:00"
+      "ts": "2026-05-08T07:26:44.809338+00:00"
     },
     {
       "indicator": "Maritime Chokepoint News Volume",
-      "value": 1.5849,
+      "value": 1.7967,
       "unit": "% global coverage",
       "source": "GDELT DOC 2.0",
       "status": "alert",
-      "notes": "Monitors news coverage of maritime chokepoint disruption events. Current: 1.5849% of global coverage. 7-day avg: 1.5870%. Trend: ↑ rising.",
+      "notes": "Monitors news coverage of maritime chokepoint disruption events. Current: 1.7967% of global coverage. 7-day avg: 1.6037%. Trend: ↑ rising.",
       "sector": "geopolitical",
       "region": "global",
-      "ts": "2026-05-08T02:37:45.544415+00:00"
+      "ts": "2026-05-08T07:26:51.795595+00:00"
     },
     {
       "indicator": "Energy Crisis News Volume",
-      "value": 0.0057,
-      "unit": "% global coverage",
+      "value": null,
+      "unit": "",
       "source": "GDELT DOC 2.0",
-      "status": "ok",
-      "notes": "Monitors news coverage of energy crises specifically affecting developing nations. Current: 0.0057% of global coverage. 7-day avg: 0.0161%. Trend: → stable.",
+      "status": "error",
+      "notes": "ERROR: 429 Client Error: Too Many Requests for url: https://api.gdeltproject.org/api/v2/doc/doc?query=%28%22energy%20crisis%22%20OR%20%22fuel%20shortage%22%20OR%20%22LNG%20shortage%22%20OR%20%22gas%20shortage%22%29%20developing&mode=timelinevol&timespan=7d&timezoom=yes&TIMELINESMOOTH=3&format=json",
       "sector": "geopolitical",
       "region": "global",
-      "ts": "2026-05-08T02:38:05.023626+00:00"
+      "ts": "2026-05-08T07:26:57.318162+00:00"
     },
     {
       "indicator": "Food Crisis News Volume",
-      "value": 0.02,
+      "value": 0.0128,
       "unit": "% global coverage",
       "source": "GDELT DOC 2.0",
       "status": "ok",
-      "notes": "Monitors news coverage of food crises in target pilot regions. Current: 0.0200% of global coverage. 7-day avg: 0.0315%. Trend: → stable.",
+      "notes": "Monitors news coverage of food crises in target pilot regions. Current: 0.0128% of global coverage. 7-day avg: 0.0311%. Trend: → stable.",
       "sector": "geopolitical",
       "region": "global",
-      "ts": "2026-05-08T02:38:16.558366+00:00"
+      "ts": "2026-05-08T07:27:04.819467+00:00"
     },
     {
       "indicator": "Population without safely managed drinking water",
@@ -256,7 +256,7 @@
       "notes": "2.2B people lack safely managed drinking water (JMP 2023). Of these, 703M have no basic water service. Concentrated in Sub-Saharan Africa and South Asia. Update from washdata.org annually.",
       "sector": "wash",
       "region": "global",
-      "ts": "2026-05-08T02:38:16.558938+00:00"
+      "ts": "2026-05-08T07:27:04.820278+00:00"
     },
     {
       "indicator": "Population without basic sanitation",
@@ -267,7 +267,7 @@
       "notes": "3.5B people lack safely managed sanitation. Highest burden in South Asia (1.5B) and Sub-Saharan Africa (1.0B). Update from washdata.org annually.",
       "sector": "wash",
       "region": "global",
-      "ts": "2026-05-08T02:38:16.558944+00:00"
+      "ts": "2026-05-08T07:27:04.820284+00:00"
     },
     {
       "indicator": "Population practicing open defecation",
@@ -278,7 +278,7 @@
       "notes": "419M people still practicing open defecation globally (JMP 2023). Down from 892M in 2000 but progress slowing. Primary contamination driver for groundwater.",
       "sector": "wash",
       "region": "global",
-      "ts": "2026-05-08T02:38:16.558947+00:00"
+      "ts": "2026-05-08T07:27:04.820287+00:00"
     },
     {
       "indicator": "BDT / USD (Bangladeshi Taka)",
@@ -289,18 +289,18 @@
       "notes": "Bangladeshi Taka at 123.10 per USD — within normal range.",
       "sector": "currency",
       "region": "South Asia",
-      "ts": "2026-05-08T02:38:16.910143+00:00"
+      "ts": "2026-05-08T07:27:06.235022+00:00"
     },
     {
       "indicator": "KES / USD (Kenyan Shilling)",
-      "value": 129.32,
+      "value": 129.2,
       "unit": "KES per USD",
       "source": "Open Exchange Rates / Stooq",
       "status": "ok",
-      "notes": "Kenyan Shilling at 129.32 per USD — within normal range.",
+      "notes": "Kenyan Shilling at 129.20 per USD — within normal range.",
       "sector": "currency",
       "region": "East Africa",
-      "ts": "2026-05-08T02:38:16.910159+00:00"
+      "ts": "2026-05-08T07:27:06.235039+00:00"
     },
     {
       "indicator": "ETB / USD (Ethiopian Birr)",
@@ -311,7 +311,7 @@
       "notes": "Ethiopian Birr at 156.64 per USD — significantly depreciated. Import costs (fuel, food) elevated for East Africa households. Alert threshold: 70.00.",
       "sector": "currency",
       "region": "East Africa",
-      "ts": "2026-05-08T02:38:16.910166+00:00"
+      "ts": "2026-05-08T07:27:06.235045+00:00"
     },
     {
       "indicator": "BOB / USD (Bolivian Boliviano)",
@@ -322,7 +322,7 @@
       "notes": "Bolivian Boliviano at 6.93 per USD — within normal range.",
       "sector": "currency",
       "region": "Andean LatAm",
-      "ts": "2026-05-08T02:38:16.910171+00:00"
+      "ts": "2026-05-08T07:27:06.235049+00:00"
     },
     {
       "indicator": "PEN / USD (Peruvian Sol)",
@@ -333,18 +333,18 @@
       "notes": "Peruvian Sol at 3.48 per USD — within normal range.",
       "sector": "currency",
       "region": "Andean LatAm",
-      "ts": "2026-05-08T02:38:16.910175+00:00"
+      "ts": "2026-05-08T07:27:06.235053+00:00"
     },
     {
       "indicator": "MXN / USD (Mexican Peso)",
-      "value": 17.2847,
+      "value": 17.2602,
       "unit": "MXN per USD",
       "source": "Open Exchange Rates / Stooq",
       "status": "ok",
-      "notes": "Mexican Peso at 17.28 per USD — within normal range.",
+      "notes": "Mexican Peso at 17.26 per USD — within normal range.",
       "sector": "currency",
       "region": "Latin America",
-      "ts": "2026-05-08T02:38:16.910179+00:00"
+      "ts": "2026-05-08T07:27:06.235058+00:00"
     },
     {
       "indicator": "CLP / USD (Chilean Peso)",
@@ -355,7 +355,7 @@
       "notes": "Chilean Peso at 890.97 per USD — within normal range.",
       "sector": "currency",
       "region": "Latin America",
-      "ts": "2026-05-08T02:38:16.910184+00:00"
+      "ts": "2026-05-08T07:27:06.235061+00:00"
     },
     {
       "indicator": "NPR / USD (Nepalese Rupee)",
@@ -366,7 +366,7 @@
       "notes": "Nepalese Rupee at 151.29 per USD — significantly depreciated. Import costs (fuel, food) elevated for South Asia households. Alert threshold: 150.00.",
       "sector": "currency",
       "region": "South Asia",
-      "ts": "2026-05-08T02:38:16.910195+00:00"
+      "ts": "2026-05-08T07:27:06.235069+00:00"
     }
   ]
 }
