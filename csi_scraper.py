@@ -575,29 +575,28 @@ def fetch_freight_rates():
     results = []
     sector  = "freight"
     
-    # Baltic Dry Index — try multiple sources since Stooq bdi ticker is unreliable
+    # Baltic Dry Index — FRED (St. Louis Fed) hosts the BDI series free, no key needed
     bdi = None
 
-    # Source 1 — Quandl/Nasdaq Data Link open BDI series (free, no key for some series)
+    # Source 1 — FRED API, series DBDI (Daily Baltic Dry Index), no key required
     try:
-        url  = "https://data.nasdaq.com/api/v3/datasets/FRED/DCOILBRENTEU.json?rows=1"
-        # Actually try the BDI from a reliable scrape of Baltic Exchange news page
-        url  = "https://www.balticexchange.com/en/data-services/market-information0/daily-reports.html"
+        url  = ("https://fred.stlouisfed.org/graph/fredgraph.csv"
+                "?id=DBDI&vintage_date=" +
+                datetime.now(timezone.utc).strftime("%Y-%m-%d"))
         resp = SESSION.get(url, timeout=15)
-        if resp.ok:
-            soup = BeautifulSoup(resp.text, "html.parser")
-            text = soup.get_text(" ", strip=True)
-            m = re.search(r'BDI[^\d]*?([\d,]+)', text)
-            if m:
-                val = float(m.group(1).replace(",", ""))
-                if 200 < val < 20000:
-                    bdi = val
+        resp.raise_for_status()
+        lines = [l for l in resp.text.strip().splitlines() if l and not l.startswith("DATE")]
+        if lines:
+            last = lines[-1].split(",")
+            val  = last[1].strip()
+            if val and val != ".":
+                bdi = float(val)
     except Exception:
         pass
 
-    # Source 2 — Stooq BDI (keep as fallback with multiple ticker attempts)
+    # Source 2 — Stooq BDI tickers as fallback
     if bdi is None:
-        for ticker in ["bdi", "^bdi", "bdi.uk"]:
+        for ticker in ["bdi", "^bdi"]:
             try:
                 url  = f"https://stooq.com/q/d/l/?s={ticker}&i=d"
                 resp = SESSION.get(url, timeout=12)
@@ -610,8 +609,6 @@ def fetch_freight_rates():
                         break
             except Exception:
                 continue
-
-    # Source 3 — GDELT news proxy for shipping stress if BDI unavailable
     if bdi is not None:
         if bdi < 1500:
             status = "ok"
@@ -750,45 +747,48 @@ def fetch_gdelt_signals():
     """
     GDELT DOC 2.0 API — free, no auth required.
     Returns news volume (% of global coverage) for supply chain keywords.
-    Updated every 15 minutes. Uses 24h timespan.
+    Uses timelinevol mode (faster, less rate-limit prone than artlist).
+    Sleeps between queries to avoid 429 rate limiting.
     """
+    import time
     results = []
     sector  = "geopolitical"
-    
-    for q in GDELT_QUERIES:
+
+    for i, q in enumerate(GDELT_QUERIES):
+        # Sleep between queries — GDELT rate-limits at ~6-8 req/min from same IP
+        if i > 0:
+            time.sleep(12)
         try:
             url = (
                 "https://api.gdeltproject.org/api/v2/doc/doc"
                 f"?query={requests.utils.quote(q['query'])}"
                 "&mode=timelinevol&timespan=7d&timezoom=yes&TIMELINESMOOTH=3&format=json"
             )
-            resp = SESSION.get(url, timeout=TIMEOUT)
+            resp = SESSION.get(url, timeout=20)
             resp.raise_for_status()
             data = resp.json()
-            
-            # Extract the most recent volume percentage
+
             timeline = data.get("timeline", [])
             if timeline and timeline[0].get("data"):
                 points  = timeline[0]["data"]
                 latest  = points[-1]["value"] if points else 0.0
                 avg_7d  = sum(p["value"] for p in points) / len(points) if points else 0.0
-                
-                status = _threshold_gdelt(latest)
-                trend  = "↑ rising" if len(points) > 1 and points[-1]["value"] > points[-2]["value"] else "→ stable"
-                
-                notes = (
+                status  = _threshold_gdelt(latest)
+                trend   = "↑ rising" if len(points) > 1 and points[-1]["value"] > points[-2]["value"] else "→ stable"
+                notes   = (
                     f"{q['context']} "
                     f"Current: {latest:.4f}% of global coverage. "
                     f"7-day avg: {avg_7d:.4f}%. Trend: {trend}."
                 )
-                results.append(_ok(q["label"], round(latest, 5), "% global coverage", "GDELT DOC 2.0", status, notes, sector))
+                results.append(_ok(q["label"], round(latest, 5), "% global coverage",
+                                   "GDELT DOC 2.0", status, notes, sector))
             else:
                 results.append(_ok(q["label"], 0.0, "% global coverage", "GDELT DOC 2.0", "ok",
                                    f"No data returned for query. {q['context']}", sector))
-        
+
         except Exception as exc:
             results.append(_err(q["label"], str(exc), "GDELT DOC 2.0", sector))
-    
+
     return results
 
 
