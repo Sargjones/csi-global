@@ -29,7 +29,7 @@ jobs:
         run: pip install requests beautifulsoup4 websocket-client
 
       - name: Run scraper
-      continue-on-error: true
+        continue-on-error: true
         env:
           EIA_API_KEY: ${{ secrets.EIA_API_KEY }}
           OPENEXCHANGERATES_APP_ID: ${{ secrets.OPENEXCHANGERATES_APP_ID }}
