@@ -659,40 +659,46 @@ def fetch_freight_rates():
     results = []
     sector  = "freight"
     
-    # Baltic Dry Index — FRED (St. Louis Fed) hosts the BDI series free, no key needed
+    # Baltic Dry Index — try multiple sources
     bdi = None
 
-    # Source 1 — FRED API, series DBDI (Daily Baltic Dry Index), no key required
-    try:
-        url  = ("https://fred.stlouisfed.org/graph/fredgraph.csv"
-                "?id=DBDI&vintage_date=" +
-                datetime.now(timezone.utc).strftime("%Y-%m-%d"))
-        resp = SESSION.get(url, timeout=15)
-        resp.raise_for_status()
-        lines = [l for l in resp.text.strip().splitlines() if l and not l.startswith("DATE")]
-        if lines:
-            last = lines[-1].split(",")
-            val  = last[1].strip()
-            if val and val != ".":
-                bdi = float(val)
-    except Exception:
-        pass
-
-    # Source 2 — Stooq BDI tickers as fallback
-    if bdi is None:
-        for ticker in ["bdi", "^bdi"]:
-            try:
-                url  = f"https://stooq.com/q/d/l/?s={ticker}&i=d"
-                resp = SESSION.get(url, timeout=12)
-                resp.raise_for_status()
-                lines = [l for l in resp.text.strip().splitlines() if l and not l.startswith("Date")]
-                if lines and len(lines[-1].split(",")) >= 5:
-                    val = float(lines[-1].split(",")[4])
+    # Source 1 — wisesheets / tradingeconomics proxy (no JS, returns text)
+    for bdi_url in [
+        "https://tradingeconomics.com/commodity/baltic",
+        "https://markets.businessinsider.com/commodities/bdi-index",
+    ]:
+        try:
+            resp = SESSION.get(bdi_url, timeout=12)
+            if resp.ok:
+                text = BeautifulSoup(resp.text, "html.parser").get_text(" ", strip=True)
+                # Look for a number in the 200-20000 range near "BDI" or "Baltic"
+                m = re.search(r'(?:BDI|Baltic)[^\d]{0,30}([\d,]+)', text, re.IGNORECASE)
+                if m:
+                    val = float(m.group(1).replace(",", ""))
                     if 200 < val < 20000:
                         bdi = val
                         break
-            except Exception:
-                continue
+        except Exception:
+            continue
+
+    # Source 2 — FRED API series DBDI (may have 1-day lag)
+    if bdi is None:
+        try:
+            url  = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DBDI"
+            resp = SESSION.get(url, timeout=15)
+            resp.raise_for_status()
+            lines = [l for l in resp.text.strip().splitlines()
+                     if l and not l.startswith("DATE")]
+            # Walk back from end to find non-missing value
+            for line in reversed(lines[-10:]):
+                parts = line.split(",")
+                if len(parts) >= 2 and parts[1].strip() not in (".", ""):
+                    val = float(parts[1].strip())
+                    if 200 < val < 20000:
+                        bdi = val
+                        break
+        except Exception:
+            pass
     if bdi is not None:
         if bdi < 1500:
             status = "ok"
@@ -848,8 +854,11 @@ def fetch_gdelt_signals():
     sector  = "geopolitical"
 
     for i, q in enumerate(GDELT_THEMES):
-        if i > 0:
+        # First query: no sleep. Queries 2-3: 12s sleep. Last query: 8s sleep (GDELT warmed up)
+        if i == 1 or i == 2:
             time.sleep(12)
+        elif i == 3:
+            time.sleep(8)
         try:
             # Primary: theme tag query (fastest, most reliable)
             url = (
@@ -857,7 +866,7 @@ def fetch_gdelt_signals():
                 f"?query=theme%3A{q['theme']}"
                 "&mode=timelinevol&timespan=7d&timezoom=yes&TIMELINESMOOTH=3&format=json"
             )
-            resp = SESSION.get(url, timeout=20)
+            resp = SESSION.get(url, timeout=25)  # Longer timeout for last query
 
             # If theme query rate-limited, try fallback keyword
             if resp.status_code == 429:
@@ -969,19 +978,36 @@ ACTIVE_OUTBREAKS = [
         "unit":      "confirmed/suspected cases",
         "status":    "alert",
         "region":    "Global — 23 nationalities, 6+ countries",
-        "source":    "WHO DON599 / CDC HAN00528",
+        "source":    "WHO DON600 / CDC HAN00528 (updated May 8 2026)",
         "notes": (
-            "Andes virus (only human-to-human transmissible hantavirus). "
+            "Andes virus — only human-to-human transmissible hantavirus. "
             "MV Hondius cruise ship departed Ushuaia, Argentina April 1 2026. "
-            "8 cases (6 confirmed, 2 suspected), 3 deaths as of May 9 2026. "
-            "Passengers from 23 nationalities dispersed via repatriation flights. "
-            "Active cases in: South Africa, Netherlands, Germany, Spain, Switzerland, Canada. "
+            "8 cases (6 confirmed, 2 probable), 3 deaths (CFR 38%) as of May 8 2026. "
+            "Medical evacuations: 2 flights Cabo Verde → Netherlands May 6-7. "
+            "1 patient critically ill, ICU in South Africa. "
+            "US passengers disembarked before outbreak identified — CDC coordinating. "
             "45-day monitoring window extends to ~June 15 2026. "
-            "Cape Verde UNABLE to handle evacuation — direct illustration of "
+            "Cabo Verde UNABLE to handle initial evacuation — direct illustration of "
             "health infrastructure gap in CSI pilot regions. "
-            "38% HPS fatality rate. No antiviral treatment. "
-            "MONITOR: WHO DON updates at who.int/emergencies/disease-outbreak-news. "
-            "ESCALATE TO: community transmission confirmed outside ship contacts."
+            "WHO global risk assessment: LOW. No antiviral treatment exists. "
+            "MONITOR: who.int/emergencies/disease-outbreak-news/item/2026-DON600 "
+            "ESCALATE TO: confirmed community transmission outside ship contacts."
+        ),
+    },
+    {
+        "indicator": "Ethiopia — Marburg Virus Disease Outbreak (RESOLVED Jan 2026)",
+        "value":     19,
+        "unit":      "total cases (14 confirmed, 9 deaths)",
+        "status":    "ok",
+        "region":    "East Africa — Ethiopia (pilot region)",
+        "source":    "WHO DON592",
+        "notes": (
+            "Ethiopia declared end of Marburg outbreak January 26 2026 after 42 days "
+            "with no new confirmed cases. CFR 64.3% among confirmed cases. "
+            "First-ever MVD outbreak in Ethiopia. South Ethiopia Region + Sidama Region affected. "
+            "RESOLVED — retained for pilot region health baseline context. "
+            "Demonstrates Ethiopia's elevated disease burden and health system stress "
+            "relevant to CSI East Africa pilot community selection."
         ),
     },
 ]
@@ -989,62 +1015,56 @@ ACTIVE_OUTBREAKS = [
 
 def fetch_who_don():
     """
-    WHO Disease Outbreak News (DON) RSS feed.
-    Flags any outbreak mentioning CSI pilot regions or high-consequence pathogens.
-    Feed updates within hours of WHO publishing a new DON.
+    WHO Disease Outbreak News — scrapes the DON listing page directly
+    since the old RSS feed URL (feeds/entity/csr/don) returned 404.
+    New URL pattern: who.int/emergencies/disease-outbreak-news
+    Falls back to parsing the main DON page for recent items.
     """
     results = []
     sector  = "health"
     source  = "WHO Disease Outbreak News"
 
     try:
-        url  = "https://www.who.int/feeds/entity/csr/don/en/rss.xml"
+        # Scrape the DON listing page directly — RSS feed URL changed
+        url  = "https://www.who.int/emergencies/disease-outbreak-news"
         resp = SESSION.get(url, timeout=20)
         resp.raise_for_status()
-        soup = BeautifulSoup(resp.text, "xml" if "xml" in resp.headers.get("content-type","") else "html.parser")
+        soup = BeautifulSoup(resp.text, "html.parser")
 
-        items = soup.find_all("item")
-        if not items:
-            # Try lxml-style parsing
-            items = soup.find_all("item") or soup.select("item")
+        # Extract DON item titles and links
+        items = []
+        # DON items typically appear as links with /item/ in their href
+        for a in soup.find_all("a", href=True):
+            href  = a["href"]
+            title = a.get_text(strip=True)
+            if "/disease-outbreak-news/item/" in href and len(title) > 15:
+                items.append({"title": title, "url": href})
+
+        items = items[:20]  # Most recent 20
 
         pilot_hits    = []
         pathogen_hits = []
-        recent_titles = []
 
-        for item in items[:20]:  # Check most recent 20 DONs
-            title = (item.find("title") or item.find("title")).get_text(strip=True) if item.find("title") else ""
-            desc  = (item.find("description") or item.find("summary") or "")
-            desc  = desc.get_text(strip=True) if hasattr(desc, "get_text") else str(desc)
-            pub   = (item.find("pubDate") or item.find("published") or "")
-            pub   = pub.get_text(strip=True) if hasattr(pub, "get_text") else ""
-            combined = (title + " " + desc).lower()
-
-            recent_titles.append(title[:80])
-
-            # Check for pilot region mention
-            for kw in PILOT_REGION_KEYWORDS:
-                if kw in combined:
-                    pilot_hits.append({"title": title, "pub": pub, "keyword": kw})
-                    break
-
-            # Check for high-consequence pathogen
+        for item in items:
+            combined = item["title"].lower()
             for pathogen in HIGH_CONSEQUENCE_PATHOGENS:
                 if pathogen in combined:
-                    pathogen_hits.append({"title": title, "pub": pub, "pathogen": pathogen})
+                    pathogen_hits.append(item)
+                    break
+            for kw in PILOT_REGION_KEYWORDS:
+                if kw in combined:
+                    pilot_hits.append({**item, "keyword": kw})
                     break
 
-        # Report pilot region hits
         if pathogen_hits:
             hit = pathogen_hits[0]
             results.append(_ok(
                 "WHO DON — High-Consequence Pathogen Alert",
-                len(pathogen_hits),
-                "active DONs",
+                len(pathogen_hits), "active DONs",
                 source, "alert",
-                f"HIGH CONSEQUENCE: {hit['pathogen'].title()} detected in recent WHO DONs. "
-                f"Most recent: '{hit['title']}' ({hit['pub']}). "
-                f"Total matching DONs (last 20): {len(pathogen_hits)}. "
+                f"HIGH CONSEQUENCE pathogen in recent WHO DONs. "
+                f"Most recent: '{hit['title'][:100]}'. "
+                f"Total matching (last 20 DONs): {len(pathogen_hits)}. "
                 f"Review: who.int/emergencies/disease-outbreak-news",
                 sector, "global"
             ))
@@ -1052,32 +1072,26 @@ def fetch_who_don():
             hit = pilot_hits[0]
             results.append(_ok(
                 "WHO DON — Pilot Region Health Alert",
-                len(pilot_hits),
-                "active DONs",
+                len(pilot_hits), "active DONs",
                 source, "watch",
-                f"WHO Disease Outbreak News mentions CSI pilot region keyword '{hit['keyword']}'. "
-                f"Most recent: '{hit['title']}' ({hit['pub']}). "
-                f"Total matching DONs (last 20): {len(pilot_hits)}. "
+                f"WHO DON mentions CSI pilot region '{hit.get('keyword', '')}'. "
+                f"Most recent: '{hit['title'][:100]}'. "
                 f"Review: who.int/emergencies/disease-outbreak-news",
                 sector, "global"
             ))
         else:
-            recent = " | ".join(recent_titles[:3])
+            recent = " | ".join(i["title"][:60] for i in items[:3])
             results.append(_ok(
                 "WHO DON — Pilot Region Health Signal",
-                0,
-                "active DONs in pilot regions",
+                0, "active DONs in pilot regions",
                 source, "ok",
-                f"No recent WHO Disease Outbreak News for CSI pilot regions or "
-                f"high-consequence pathogens. Recent DONs: {recent}",
+                f"No recent WHO DONs for CSI pilot regions or high-consequence pathogens. "
+                f"Recent DONs: {recent}",
                 sector, "global"
             ))
 
     except Exception as exc:
-        results.append(_err(
-            "WHO DON — Disease Outbreak Monitor",
-            str(exc), source, sector
-        ))
+        results.append(_err("WHO DON — Disease Outbreak Monitor", str(exc), source, sector))
 
     return results
 
