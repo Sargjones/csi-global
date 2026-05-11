@@ -559,6 +559,7 @@
   <button class="nav-pill" onclick="filterSector('water', this)">Water</button>
   <button class="nav-pill" onclick="filterSector('geopolitical', this)">Geopolitical</button>
   <button class="nav-pill" onclick="filterSector('wash', this)">WASH</button>
+  <button class="nav-pill" onclick="filterSector('health', this)">Health</button>
   <button class="nav-pill" onclick="filterSector('currency', this)">Currency</button>
 </div>
 
@@ -585,14 +586,15 @@
 <script>
 // ── SECTOR CONFIG ────────────────────────────────────────────────────────────
 const SECTOR_META = {
-  energy:      { label: "Energy",           icon: "⚡", order: 1 },
+  energy:      { label: "Energy",              icon: "⚡", order: 1 },
   chokepoint:  { label: "Maritime Chokepoints", icon: "🚢", order: 2 },
-  food:        { label: "Food Prices",      icon: "🌾", order: 3 },
-  freight:     { label: "Freight & Shipping", icon: "📦", order: 4 },
-  water:       { label: "Water",            icon: "💧", order: 5 },
+  food:        { label: "Food Prices",          icon: "🌾", order: 3 },
+  freight:     { label: "Freight & Shipping",   icon: "📦", order: 4 },
+  water:       { label: "Water",                icon: "💧", order: 5 },
   geopolitical:{ label: "Geopolitical Signals", icon: "🌐", order: 6 },
-  wash:        { label: "WASH — Water Access", icon: "🪣", order: 7 },
-  currency:    { label: "Currency Stress",  icon: "💱", order: 8 },
+  wash:        { label: "WASH — Water Access",  icon: "🪣", order: 7 },
+  health:      { label: "Health Shocks",        icon: "🏥", order: 8 },
+  currency:    { label: "Currency Stress",      icon: "💱", order: 9 },
 };
 
 // ── DATA LOADING ─────────────────────────────────────────────────────────────
