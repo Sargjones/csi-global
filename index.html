@@ -742,7 +742,7 @@ function cardHtml(ind, delay) {
     ? `<div class="card-notes">${escHtml(ind.notes)}<div class="card-source">↳ ${escHtml(ind.source)}</div></div>` : '';
 
   return `
-    <div class="card ${st}" style="animation-delay:${delay}ms" title="${escAttr(ind.notes||'')}">
+    <div class="card ${st}" style="animation-delay:${delay}ms">
       <div class="card-top">
         <div class="card-name">${escHtml(ind.indicator)}</div>
         <div class="card-status ${st}">${statusLabel(st)}</div>
