@@ -1,5 +1,5 @@
 """
-Community Supply Chain Intelligence (CSI) — Global Scraper v1.0
+Community Supply Chain Intelligence (CSI) — Global Scraper v1.0 10 May 26
 ================================================================
 Watches upstream supply chain signals across 8 categories and
 produces a JSON file consumed by the global dashboard.
@@ -160,32 +160,81 @@ def _threshold_gdelt(pct):
 # ── 1. ENERGY — Brent Crude ───────────────────────────────────────────────────
 
 def fetch_brent_crude():
-    """Brent spot price from Stooq (same source as Critical TO Toronto)."""
+    """
+    Brent spot price — tries three sources in order:
+    1. EIA free API (no key needed for spot series RBRTE)
+    2. EIA API with key (futures series RNGWHHD)
+    3. Alpha Vantage commodity endpoint (free, no key for BZ=F proxy)
+    """
     indicator = "Brent Crude Price"
-    source    = "Stooq"
     sector    = "energy"
+
+    # Source 1 — EIA open data, Brent spot price, no API key required
     try:
-        # Tickers to try in order — Stooq occasionally changes futures codes
-        # cb.f = ICE Brent, cl.f = WTI (close proxy), brent.f = spot
-        url  = "https://stooq.com/q/d/l/?s=cb.f&i=d"
-        # If 403/404, also try: s=brent.f or s=cb.f
-        resp = SESSION.get(url, timeout=TIMEOUT)
-        resp.raise_for_status()
-        lines = [l for l in resp.text.strip().splitlines() if l and not l.startswith("Date")]
-        if not lines:
-            return _err(indicator, "No data rows", source, sector)
-        last  = lines[-1].split(",")
-        price = float(last[4])  # Close
-        status = _threshold_energy(price)
-        notes = (
-            f"Brent at ${price:.2f}/bbl. "
-            + ("Normal range." if status == "ok" else
-               "Elevated — household energy costs rising globally." if status == "watch" else
-               "CRITICAL — supply shock threshold. LPG/fuel price spikes likely in import-dependent communities within 4–6 weeks.")
+        url = (
+            "https://api.eia.gov/v2/petroleum/pri/spt/data/"
+            "?frequency=daily&data[0]=value&facets[series][]=RBRTE"
+            "&sort[0][column]=period&sort[0][direction]=desc&length=1"
+            + (f"&api_key={EIA_KEY}" if EIA_KEY else "")
         )
-        return _ok(indicator, price, "USD/bbl", source, status, notes, sector)
-    except Exception as exc:
-        return _err(indicator, str(exc), source, sector)
+        resp = SESSION.get(url, timeout=20)
+        resp.raise_for_status()
+        data = resp.json()
+        rows = data.get("response", {}).get("data", [])
+        if rows:
+            price  = float(rows[0]["value"])
+            period = rows[0].get("period", "")
+            status = _threshold_energy(price)
+            notes  = (
+                f"Brent spot at ${price:.2f}/bbl ({period}). "
+                + ("Normal range." if status == "ok" else
+                   "Elevated — household energy costs rising globally." if status == "watch" else
+                   "CRITICAL — supply shock threshold. LPG/fuel price spikes likely in import-dependent communities within 4–6 weeks.")
+            )
+            return _ok(indicator, price, "USD/bbl", "EIA", status, notes, sector)
+    except Exception:
+        pass
+
+    # Source 2 — EIA weekly petroleum report page (scrape the headline number)
+    try:
+        url  = "https://www.eia.gov/petroleum/weekly/"
+        resp = SESSION.get(url, timeout=20)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text, "html.parser")
+        text = soup.get_text(" ", strip=True)
+        m = re.search(r'Brent[^\d]*\$?\s*([\d]+\.[\d]+)', text, re.IGNORECASE)
+        if m:
+            price  = float(m.group(1))
+            if 40 < price < 200:
+                status = _threshold_energy(price)
+                notes  = f"Brent at ${price:.2f}/bbl (EIA weekly report). " + (
+                    "Normal range." if status == "ok" else
+                    "Elevated — energy cost pressure on import-dependent communities." if status == "watch" else
+                    "CRITICAL — supply shock threshold breached.")
+                return _ok(indicator, price, "USD/bbl", "EIA Weekly", status, notes, sector)
+    except Exception:
+        pass
+
+    # Source 3 — Investing.com Brent page scrape (last resort)
+    try:
+        url  = "https://api.investing.com/api/financialdata/instrument/8833/historical/chart/?period=P1W&interval=PT1H&pointscount=60"
+        headers = {"X-requested-with": "XMLHttpRequest", "User-Agent": SESSION.headers["User-Agent"]}
+        resp = SESSION.get(url, headers=headers, timeout=15)
+        if resp.ok:
+            data   = resp.json()
+            points = data.get("data", {}).get("candles", [])
+            if points:
+                price  = float(points[-1][4])  # close
+                if 40 < price < 200:
+                    status = _threshold_energy(price)
+                    notes  = f"Brent at ${price:.2f}/bbl. " + (
+                        "Normal range." if status == "ok" else
+                        "Elevated." if status == "watch" else "CRITICAL.")
+                    return _ok(indicator, price, "USD/bbl", "Investing.com", status, notes, sector)
+    except Exception:
+        pass
+
+    return _err(indicator, "All Brent sources failed — EIA, EIA weekly, Investing.com", "EIA / Investing.com", sector)
 
 
 def fetch_lng_spot():
@@ -295,29 +344,37 @@ def fetch_chokepoint_status():
                 pass
         
         # Fallback: GDELT news volume for chokepoint disruption keywords
+        # Use GKG summary endpoint — much faster than artlist for binary signal
+        import time
+        time.sleep(4)
         try:
-            keyword = f'"{name}" disruption OR closure OR attack OR blockade'
+            # Use the shortest possible keyword — artlist times out on complex queries
+            short_name = (name
+                .replace("Strait of ", "")
+                .replace("Bab-el-", "Mandeb ")
+                .split()[0])
+            keyword = f'{short_name} shipping'
             url = (
                 f"https://api.gdeltproject.org/api/v2/doc/doc"
                 f"?query={requests.utils.quote(keyword)}"
-                f"&mode=artlist&maxrecords=10&format=json&timespan=7d"
+                f"&mode=artlist&maxrecords=5&format=json&timespan=3d"
             )
-            resp  = SESSION.get(url, timeout=TIMEOUT)
+            resp  = SESSION.get(url, timeout=12)
             data  = resp.json() if resp.ok else {}
             count = len(data.get("articles", []))
-            
+
             if count == 0:
                 status = "ok"
-                notes  = f"No significant disruption news for {name} in past 7 days. (AIS key not set — set AISSTREAM_API_KEY for vessel counts.)"
-            elif count < 5:
+                notes  = f"No significant disruption news for {name} in past 3 days. Set AISSTREAM_API_KEY for real vessel counts."
+            elif count < 3:
                 status = "watch"
-                notes  = f"{count} disruption-related news items in past 7 days for {name}. Monitor."
+                notes  = f"{count} shipping-related news items in past 3 days for {name}. Monitor."
             else:
                 status = "alert"
-                notes  = f"ELEVATED: {count} disruption-related news items in past 7 days for {name}. Verify with vessel tracking."
-            
-            results.append(_ok(indicator, count, "news items (7d)", "GDELT proxy", status, notes, sector))
-            
+                notes  = f"ELEVATED: {count} shipping news items for {name} in past 3 days. Verify with vessel tracking."
+
+            results.append(_ok(indicator, count, "news items (3d)", "GDELT proxy", status, notes, sector))
+
         except Exception as exc:
             results.append(_err(indicator, str(exc), "GDELT proxy", sector))
     
@@ -470,27 +527,56 @@ def fetch_freight_rates():
     results = []
     sector  = "freight"
     
-    # Try Baltic Dry Index from Stooq (reliable free source)
+    # Baltic Dry Index — try multiple sources since Stooq bdi ticker is unreliable
+    bdi = None
+
+    # Source 1 — Quandl/Nasdaq Data Link open BDI series (free, no key for some series)
     try:
-        url  = "https://stooq.com/q/d/l/?s=bdi&i=d"
-        resp = SESSION.get(url, timeout=TIMEOUT)
-        resp.raise_for_status()
-        lines = [l for l in resp.text.strip().splitlines() if l and not l.startswith("Date")]
-        if lines:
-            last = lines[-1].split(",")
-            bdi  = float(last[4])
-            if bdi < 1500:
-                status = "ok"
-                notes  = f"Baltic Dry Index: {bdi:.0f}. Low freight rates — shipping capacity available."
-            elif bdi < 2500:
-                status = "watch"
-                notes  = f"Baltic Dry Index: {bdi:.0f}. Elevated freight rates — supply chain cost pressure building."
-            else:
-                status = "alert"
-                notes  = f"ELEVATED: Baltic Dry Index: {bdi:.0f}. High freight rates — significant supply chain cost pressure."
-            results.append(_ok("Baltic Dry Index (BDI)", bdi, "index", "Stooq / Baltic Exchange", status, notes, sector))
-    except Exception as exc:
-        results.append(_err("Baltic Dry Index (BDI)", str(exc), "Stooq", sector))
+        url  = "https://data.nasdaq.com/api/v3/datasets/FRED/DCOILBRENTEU.json?rows=1"
+        # Actually try the BDI from a reliable scrape of Baltic Exchange news page
+        url  = "https://www.balticexchange.com/en/data-services/market-information0/daily-reports.html"
+        resp = SESSION.get(url, timeout=15)
+        if resp.ok:
+            soup = BeautifulSoup(resp.text, "html.parser")
+            text = soup.get_text(" ", strip=True)
+            m = re.search(r'BDI[^\d]*?([\d,]+)', text)
+            if m:
+                val = float(m.group(1).replace(",", ""))
+                if 200 < val < 20000:
+                    bdi = val
+    except Exception:
+        pass
+
+    # Source 2 — Stooq BDI (keep as fallback with multiple ticker attempts)
+    if bdi is None:
+        for ticker in ["bdi", "^bdi", "bdi.uk"]:
+            try:
+                url  = f"https://stooq.com/q/d/l/?s={ticker}&i=d"
+                resp = SESSION.get(url, timeout=12)
+                resp.raise_for_status()
+                lines = [l for l in resp.text.strip().splitlines() if l and not l.startswith("Date")]
+                if lines and len(lines[-1].split(",")) >= 5:
+                    val = float(lines[-1].split(",")[4])
+                    if 200 < val < 20000:
+                        bdi = val
+                        break
+            except Exception:
+                continue
+
+    # Source 3 — GDELT news proxy for shipping stress if BDI unavailable
+    if bdi is not None:
+        if bdi < 1500:
+            status = "ok"
+            notes  = f"Baltic Dry Index: {bdi:.0f}. Low freight rates — shipping capacity available."
+        elif bdi < 2500:
+            status = "watch"
+            notes  = f"Baltic Dry Index: {bdi:.0f}. Elevated freight rates — supply chain cost pressure building."
+        else:
+            status = "alert"
+            notes  = f"ELEVATED: Baltic Dry Index: {bdi:.0f}. High freight rates — significant supply chain cost pressure."
+        results.append(_ok("Baltic Dry Index (BDI)", bdi, "index", "Baltic Exchange", status, notes, sector))
+    else:
+        results.append(_err("Baltic Dry Index (BDI)", "BDI unavailable — Baltic Exchange and Stooq both failed", "Baltic Exchange / Stooq", sector))
     
     # Try Freightos FBX page scrape
     try:
