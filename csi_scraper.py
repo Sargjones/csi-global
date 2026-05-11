@@ -1,15 +1,15 @@
 """
-Community Supply Chain Intelligence (CSI) — Global Scraper v1.0 10 May 26
+Community Supply Chain Intelligence (CSI) — Global Scraper v1.0
 ================================================================
 Watches upstream supply chain signals across 8 categories and
 produces a JSON file consumed by the global dashboard.
 
 SIGNALS
 -------
-  1. Energy      — Brent crude (Stooq), LNG spot (EIA)
-  2. Chokepoints — Vessel density in Hormuz / Bab-el-Mandeb / Suez (AISstream.io)
-  3. Food        — FAO Food Price Index sub-indices (FAOSTAT CSV)
-  4. Freight     — Freightos Baltic Index FBX proxy (scraped)
+  1. Energy      — Brent crude (EIA spot RBRTE), LNG spot (EIA/Stooq fallback)
+  2. Chokepoints — Vessel counts via AISstream.io WebSocket; GDELT news proxy fallback
+  3. Food        — FAO FFPI scraped from FAO world food situation page
+  4. Freight     — Baltic Dry Index (Baltic Exchange) + Freightos FBX (scraped)
   5. Water       — GloFAS river anomaly signal (Copernicus/EU)
   6. Geopolitical— GDELT DOC 2.0 API (supply shock keyword volume)
   7. WASH        — WHO/UNICEF JMP improved water access (static annual, manual update)
@@ -286,69 +286,114 @@ CHOKEPOINTS = {
     "Strait of Malacca": (1.0, 6.0, 100.0, 104.5),
 }
 
+def _aisstream_vessel_count(api_key, lat_min, lat_max, lon_min, lon_max, listen_seconds=20):
+    """
+    Opens a WebSocket to AISstream.io, subscribes to a bounding box,
+    collects unique vessel MMSIs for listen_seconds, then returns the count.
+    AISstream is WebSocket-only — there is no REST endpoint.
+    """
+    import threading
+    try:
+        import websocket  # pip install websocket-client
+    except ImportError:
+        return None, "websocket-client not installed"
+
+    mmsis   = set()
+    error   = [None]
+    done    = threading.Event()
+
+    def on_open(ws):
+        subscription = {
+            "APIkey": api_key,
+            "BoundingBoxes": [[[lat_min, lon_min], [lat_max, lon_max]]],
+            "FilterMessageTypes": ["PositionReport"],
+        }
+        ws.send(json.dumps(subscription))
+
+    def on_message(ws, message):
+        try:
+            data = json.loads(message)
+            mmsi = (data.get("Message", {})
+                       .get("PositionReport", {})
+                       .get("UserID"))
+            if mmsi:
+                mmsis.add(mmsi)
+        except Exception:
+            pass
+
+    def on_error(ws, err):
+        error[0] = str(err)
+        done.set()
+
+    def on_close(ws, *args):
+        done.set()
+
+    ws = websocket.WebSocketApp(
+        "wss://stream.aisstream.io/v0/stream",
+        on_open=on_open,
+        on_message=on_message,
+        on_error=on_error,
+        on_close=on_close,
+    )
+
+    t = threading.Thread(target=ws.run_forever, kwargs={"ping_interval": 30}, daemon=True)
+    t.start()
+    done.wait(timeout=listen_seconds + 5)
+    ws.close()
+
+    if error[0] and not mmsis:
+        return None, error[0]
+    return len(mmsis), None
+
+
 def fetch_chokepoint_status():
     """
-    Queries AISstream.io REST snapshot API for vessel counts inside each
-    chokepoint bounding box. Returns alert status based on vessel density
-    anomaly (very low density = disruption signal).
-    
-    Falls back to GDELT keyword search for chokepoint news if AIS unavailable.
+    Vessel counts per chokepoint via AISstream.io WebSocket (primary).
+    Falls back to GDELT news proxy if AISstream key not set or fails.
     """
+    import time
     results = []
-    
+
+    BASELINES = {
+        "Strait of Hormuz":   80,
+        "Bab-el-Mandeb":      60,
+        "Suez Canal":         45,
+        "Strait of Malacca": 120,
+    }
+
     for name, (lat_min, lat_max, lon_min, lon_max) in CHOKEPOINTS.items():
         indicator = f"Chokepoint — {name}"
-        source    = "AISstream.io"
         sector    = "chokepoint"
-        
+
+        # ── PRIMARY: AISstream WebSocket ──────────────────────────────────────
         if AISSTREAM_KEY:
-            try:
-                # AISstream REST snapshot for bounding box vessel count
-                url = "https://stream.aisstream.io/v0/vessels"
-                params = {
-                    "BoundingBoxes": f"[[{lat_min},{lon_min}],[{lat_max},{lon_max}]]",
-                    "FilterMessageTypes": ["PositionReport"],
-                }
-                headers = {"Authorization": f"Bearer {AISSTREAM_KEY}"}
-                resp = SESSION.get(url, params=params, headers=headers, timeout=TIMEOUT)
-                resp.raise_for_status()
-                data  = resp.json()
-                count = len(data.get("vessels", []))
-                
-                # Rough normal baseline counts (tankers + cargo in transit)
-                # These baselines are approximate — refine after first weeks of data
-                baselines = {
-                    "Strait of Hormuz":    80,
-                    "Bab-el-Mandeb":       60,
-                    "Suez Canal":          45,
-                    "Strait of Malacca":   120,
-                }
-                baseline = baselines.get(name, 50)
+            count, err = _aisstream_vessel_count(
+                AISSTREAM_KEY, lat_min, lat_max, lon_min, lon_max,
+                listen_seconds=20
+            )
+            if count is not None:
+                baseline = BASELINES.get(name, 50)
                 ratio    = count / baseline if baseline else 1.0
-                
                 if ratio > 0.8:
                     status = "ok"
-                    notes  = f"{count} vessels detected (normal baseline ~{baseline}). Traffic flowing."
+                    notes  = (f"{count} unique vessels detected in {name} "
+                              f"(20s window, baseline ~{baseline}). Traffic flowing normally.")
                 elif ratio > 0.5:
                     status = "watch"
-                    notes  = f"{count} vessels detected vs baseline ~{baseline}. Reduced traffic — monitor."
+                    notes  = (f"{count} vessels vs baseline ~{baseline} in {name}. "
+                              f"Reduced traffic — monitor closely.")
                 else:
                     status = "alert"
-                    notes  = f"CRITICAL: only {count} vessels vs baseline ~{baseline}. Significant disruption signal."
-                
-                results.append(_ok(indicator, count, "vessels", source, status, notes, sector))
+                    notes  = (f"CRITICAL: only {count} vessels vs baseline ~{baseline} "
+                              f"in {name}. Significant disruption signal — verify immediately.")
+                results.append(_ok(indicator, count, "vessels (20s window)",
+                                   "AISstream.io", status, notes, sector))
                 continue
-                
-            except Exception as exc:
-                # Fall through to GDELT news proxy
-                pass
-        
-        # Fallback: GDELT news volume for chokepoint disruption keywords
-        # Use GKG summary endpoint — much faster than artlist for binary signal
-        import time
+            # else fall through to GDELT
+
+        # ── FALLBACK: GDELT news proxy ────────────────────────────────────────
         time.sleep(4)
         try:
-            # Use the shortest possible keyword — artlist times out on complex queries
             short_name = (name
                 .replace("Strait of ", "")
                 .replace("Bab-el-", "Mandeb ")
@@ -365,15 +410,18 @@ def fetch_chokepoint_status():
 
             if count == 0:
                 status = "ok"
-                notes  = f"No significant disruption news for {name} in past 3 days. Set AISSTREAM_API_KEY for real vessel counts."
+                notes  = (f"No significant disruption news for {name} in past 3 days. "
+                          f"(AISstream WebSocket fallback — set AISSTREAM_API_KEY for live vessel counts.)")
             elif count < 3:
                 status = "watch"
-                notes  = f"{count} shipping-related news items in past 3 days for {name}. Monitor."
+                notes  = f"{count} shipping news items in past 3 days for {name}. Monitor."
             else:
                 status = "alert"
-                notes  = f"ELEVATED: {count} shipping news items for {name} in past 3 days. Verify with vessel tracking."
+                notes  = (f"ELEVATED: {count} shipping news items for {name} in past 3 days. "
+                          f"Verify with vessel tracking.")
 
-            results.append(_ok(indicator, count, "news items (3d)", "GDELT proxy", status, notes, sector))
+            results.append(_ok(indicator, count, "news items (3d)",
+                               "GDELT proxy", status, notes, sector))
 
         except Exception as exc:
             results.append(_err(indicator, str(exc), "GDELT proxy", sector))
