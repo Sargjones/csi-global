@@ -2,6 +2,7 @@ name: CSI Global Scraper
 
 on:
   schedule:
+    # Every 6 hours: 00:00, 06:00, 12:00, 18:00 UTC
     - cron: "0 */6 * * *"
   workflow_dispatch:
     inputs:
@@ -25,10 +26,9 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install requests beautifulsoup4
+        run: pip install requests beautifulsoup4 websocket-client
 
       - name: Run scraper
-        continue-on-error: true
         env:
           EIA_API_KEY: ${{ secrets.EIA_API_KEY }}
           OPENEXCHANGERATES_APP_ID: ${{ secrets.OPENEXCHANGERATES_APP_ID }}
