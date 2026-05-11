@@ -1,5 +1,5 @@
 """
-Community Supply Chain Intelligence (CSI) — Global Scraper v1.0
+Community Supply Chain Intelligence (CSI) — Global Scraper v1.0 11 May 26 0813H
 ================================================================
 Watches upstream supply chain signals across 8 categories and
 produces a JSON file consumed by the global dashboard.
@@ -13,7 +13,8 @@ SIGNALS
   5. Water       — GloFAS river anomaly signal (Copernicus/EU)
   6. Geopolitical— GDELT DOC 2.0 API (supply shock keyword volume)
   7. WASH        — WHO/UNICEF JMP improved water access (static annual, manual update)
-  8. Currency    — ODA currency stress vs USD (Open Exchange Rates free tier)
+  8. Health      — WHO Disease Outbreak News RSS + manual active outbreak indicators
+  9. Currency    — ODA currency stress vs USD (Open Exchange Rates free tier)
 
 OUTPUT
 ------
@@ -839,7 +840,178 @@ def fetch_wash_indicators():
     return results
 
 
-# ── 8. CURRENCY STRESS — ODA currencies vs USD ───────────────────────────────
+# ── 8. HEALTH — WHO Disease Outbreak News + manual active outbreaks ───────────
+
+# Pilot region keywords — any DON mentioning these triggers a health alert
+PILOT_REGION_KEYWORDS = [
+    "bangladesh", "kenya", "ethiopia", "nepal", "bolivia", "peru",
+    "mexico", "chile", "africa", "south asia", "latin america",
+    "south atlantic", "cape verde", "saint helena", "argentina",
+    "caribbean", "pacific island",
+]
+
+# Known high-consequence pathogens — always alert regardless of region
+HIGH_CONSEQUENCE_PATHOGENS = [
+    "andes virus", "hantavirus", "ebola", "marburg", "lassa",
+    "nipah", "mers", "h5n1", "mpox", "cholera",
+]
+
+# ── MANUAL ACTIVE OUTBREAKS ──────────────────────────────────────────────────
+# Update this list as outbreaks evolve. Format:
+# (indicator, value, unit, status, region, source, notes)
+ACTIVE_OUTBREAKS = [
+    {
+        "indicator": "MV Hondius — Andes Virus (Hantavirus) Outbreak",
+        "value":     8,
+        "unit":      "confirmed/suspected cases",
+        "status":    "alert",
+        "region":    "Global — 23 nationalities, 6+ countries",
+        "source":    "WHO DON599 / CDC HAN00528",
+        "notes": (
+            "Andes virus (only human-to-human transmissible hantavirus). "
+            "MV Hondius cruise ship departed Ushuaia, Argentina April 1 2026. "
+            "8 cases (6 confirmed, 2 suspected), 3 deaths as of May 9 2026. "
+            "Passengers from 23 nationalities dispersed via repatriation flights. "
+            "Active cases in: South Africa, Netherlands, Germany, Spain, Switzerland, Canada. "
+            "45-day monitoring window extends to ~June 15 2026. "
+            "Cape Verde UNABLE to handle evacuation — direct illustration of "
+            "health infrastructure gap in CSI pilot regions. "
+            "38% HPS fatality rate. No antiviral treatment. "
+            "MONITOR: WHO DON updates at who.int/emergencies/disease-outbreak-news. "
+            "ESCALATE TO: community transmission confirmed outside ship contacts."
+        ),
+    },
+]
+
+
+def fetch_who_don():
+    """
+    WHO Disease Outbreak News (DON) RSS feed.
+    Flags any outbreak mentioning CSI pilot regions or high-consequence pathogens.
+    Feed updates within hours of WHO publishing a new DON.
+    """
+    results = []
+    sector  = "health"
+    source  = "WHO Disease Outbreak News"
+
+    try:
+        url  = "https://www.who.int/feeds/entity/csr/don/en/rss.xml"
+        resp = SESSION.get(url, timeout=20)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text, "xml" if "xml" in resp.headers.get("content-type","") else "html.parser")
+
+        items = soup.find_all("item")
+        if not items:
+            # Try lxml-style parsing
+            items = soup.find_all("item") or soup.select("item")
+
+        pilot_hits    = []
+        pathogen_hits = []
+        recent_titles = []
+
+        for item in items[:20]:  # Check most recent 20 DONs
+            title = (item.find("title") or item.find("title")).get_text(strip=True) if item.find("title") else ""
+            desc  = (item.find("description") or item.find("summary") or "")
+            desc  = desc.get_text(strip=True) if hasattr(desc, "get_text") else str(desc)
+            pub   = (item.find("pubDate") or item.find("published") or "")
+            pub   = pub.get_text(strip=True) if hasattr(pub, "get_text") else ""
+            combined = (title + " " + desc).lower()
+
+            recent_titles.append(title[:80])
+
+            # Check for pilot region mention
+            for kw in PILOT_REGION_KEYWORDS:
+                if kw in combined:
+                    pilot_hits.append({"title": title, "pub": pub, "keyword": kw})
+                    break
+
+            # Check for high-consequence pathogen
+            for pathogen in HIGH_CONSEQUENCE_PATHOGENS:
+                if pathogen in combined:
+                    pathogen_hits.append({"title": title, "pub": pub, "pathogen": pathogen})
+                    break
+
+        # Report pilot region hits
+        if pathogen_hits:
+            hit = pathogen_hits[0]
+            results.append(_ok(
+                "WHO DON — High-Consequence Pathogen Alert",
+                len(pathogen_hits),
+                "active DONs",
+                source, "alert",
+                f"HIGH CONSEQUENCE: {hit['pathogen'].title()} detected in recent WHO DONs. "
+                f"Most recent: '{hit['title']}' ({hit['pub']}). "
+                f"Total matching DONs (last 20): {len(pathogen_hits)}. "
+                f"Review: who.int/emergencies/disease-outbreak-news",
+                sector, "global"
+            ))
+        elif pilot_hits:
+            hit = pilot_hits[0]
+            results.append(_ok(
+                "WHO DON — Pilot Region Health Alert",
+                len(pilot_hits),
+                "active DONs",
+                source, "watch",
+                f"WHO Disease Outbreak News mentions CSI pilot region keyword '{hit['keyword']}'. "
+                f"Most recent: '{hit['title']}' ({hit['pub']}). "
+                f"Total matching DONs (last 20): {len(pilot_hits)}. "
+                f"Review: who.int/emergencies/disease-outbreak-news",
+                sector, "global"
+            ))
+        else:
+            recent = " | ".join(recent_titles[:3])
+            results.append(_ok(
+                "WHO DON — Pilot Region Health Signal",
+                0,
+                "active DONs in pilot regions",
+                source, "ok",
+                f"No recent WHO Disease Outbreak News for CSI pilot regions or "
+                f"high-consequence pathogens. Recent DONs: {recent}",
+                sector, "global"
+            ))
+
+    except Exception as exc:
+        results.append(_err(
+            "WHO DON — Disease Outbreak Monitor",
+            str(exc), source, sector
+        ))
+
+    return results
+
+
+def fetch_active_outbreaks():
+    """
+    Manual active outbreak indicators — updated by operator.
+    Seeded with the MV Hondius Andes virus outbreak (May 2026).
+    Update ACTIVE_OUTBREAKS list above as situations evolve.
+    """
+    results = []
+    sector  = "health"
+
+    for outbreak in ACTIVE_OUTBREAKS:
+        results.append({
+            "indicator": outbreak["indicator"],
+            "value":     outbreak["value"],
+            "unit":      outbreak["unit"],
+            "source":    outbreak["source"],
+            "status":    outbreak["status"],
+            "notes":     outbreak["notes"],
+            "sector":    sector,
+            "region":    outbreak["region"],
+            "ts":        datetime.now(timezone.utc).isoformat(),
+        })
+
+    if not ACTIVE_OUTBREAKS:
+        results.append(_ok(
+            "Active Outbreak Monitor",
+            0, "active outbreaks tracked", "Manual / CSI operator",
+            "ok", "No manually tracked outbreaks active.", sector
+        ))
+
+    return results
+
+
+# ── 9. CURRENCY STRESS — ODA currencies vs USD ───────────────────────────────
 
 # Target currencies: ODA-eligible nations in pilot regions
 TARGET_CURRENCIES = {
@@ -936,6 +1108,7 @@ SECTORS = {
     "water":       [fetch_water_stress],
     "geopolitical":[fetch_gdelt_signals],
     "wash":        [fetch_wash_indicators],
+    "health":      [fetch_who_don, fetch_active_outbreaks],
     "currency":    [fetch_currency_stress],
 }
 
