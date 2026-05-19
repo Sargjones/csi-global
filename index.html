@@ -907,17 +907,18 @@ function projectGrowth(profile, days) {
   }
 
   // Active outbreak — exponential growth with containment factor
-  const r = Math.pow(2, 1 / profile.doublingDays);  // daily growth rate
-  const cf = profile.containmentFactor || 1.0;
+  // containmentFactor slows doubling: 0.85 = 15% slower spread
+  // Applied to exponent, not rate, so growth stays positive
+  const effectiveDoubling = profile.doublingDays / (profile.containmentFactor || 1.0);
   const base = profile.currentCases;
   return Array.from({length: days + 1}, (_, i) => {
-    const rawGrowth = base * Math.pow(r * cf, i);
-    const mid  = Math.round(rawGrowth);
-    const low  = Math.round(rawGrowth * 0.6);   // optimistic: better containment
-    const high = Math.round(rawGrowth * 1.6);   // pessimistic: worse containment
-    return { day: i, low, mid, high };
-  });
-}
+      const rawGrowth = base * Math.pow(2, i / effectiveDoubling);
+      const mid  = Math.round(rawGrowth);
+      const low  = Math.round(rawGrowth * 0.6);   // optimistic: better containment
+      const high = Math.round(rawGrowth * 1.6);   // pessimistic: worse containment
+      return { day: i, low, mid, high };
+    });
+  }
 
 // -- Popup builder -----------------------------------------------------------
 
