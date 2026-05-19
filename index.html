@@ -982,7 +982,7 @@ function buildPopup(profileKey, currentCount) {
       <div style="background:#f8f6f0;border-radius:14px;max-width:780px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.5)">
 
         <!-- Header -->
-        <div style="background:${accentBg};border-bottom:1px solid ${accentBorder};padding:20px 24px;border-radius:14px 14px 0 0;position:sticky;top:0;z-index:1">
+        <div style="background:${profileKey === 'ebola' ? 'rgba(255,240,240,0.97)' : 'rgba(255,248,235,0.97)'};border-bottom:1px solid ${accentBorder};padding:20px 24px;border-radius:14px 14px 0 0;position:sticky;top:0;z-index:1;backdrop-filter:blur(8px)">
           <div style="display:flex;align-items:flex-start;justify-content:space-between">
             <div>
               <div style="font-size:10px;font-family:monospace;color:${headerColor};text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">
