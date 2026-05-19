@@ -1371,7 +1371,7 @@ Dependencies (already in requirements if you have requests + bs4):
 
 Data flow:
   fetch_health_indicators()   → WHO DON RSS + CDC situation pages
-  fetch_climate_indicators()  → BAS / NSIDC static + manual override
+  fetch_climate_indicators()  → BAS / NSIDC static + manual override"""
 
 # ─── SHARED HELPERS ───────────────────────────────────────────────────────────
 
