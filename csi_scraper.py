@@ -1225,7 +1225,8 @@ SECTORS = {
     "water":       [fetch_water_stress],
     "geopolitical":[fetch_gdelt_signals],
     "wash":        [fetch_wash_indicators],
-    "health":      [fetch_who_don, fetch_active_outbreaks],
+    "health":      [fetch_who_don, fetch_active_outbreaks, fetch_health_indicators],
+    "climate":     [fetch_climate_indicators],
     "currency":    [fetch_currency_stress],
 }
 
@@ -1374,11 +1375,6 @@ Data flow:
   fetch_health_indicators()   → WHO DON RSS + CDC situation pages
   fetch_climate_indicators()  → BAS / NSIDC static + manual override
 """
-
-import re
-import requests
-from bs4 import BeautifulSoup
-from datetime import datetime, timezone
 
 # ─── SHARED HELPERS ───────────────────────────────────────────────────────────
 
