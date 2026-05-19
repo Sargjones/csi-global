@@ -1359,8 +1359,6 @@ def main():
         print(f"\n⚠️  {alert_count} ALERT(s) active — review csi_data_latest.json")
         sys.exit(2)  # Non-zero but not 1 (reserved for errors) — GHA can check this
 
-# paste entire contents of csi_health_climate_scraper.py here
-"""
 CSI-Global scraper additions — Health & Climate sectors
 Paste these functions into csi_scraper.py, then add both
 fetch calls inside collect_all_indicators().
@@ -1374,7 +1372,6 @@ Dependencies (already in requirements if you have requests + bs4):
 Data flow:
   fetch_health_indicators()   → WHO DON RSS + CDC situation pages
   fetch_climate_indicators()  → BAS / NSIDC static + manual override
-"""
 
 # ─── SHARED HELPERS ───────────────────────────────────────────────────────────
 
