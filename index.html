@@ -1096,7 +1096,7 @@ document.querySelectorAll(".indicator-card, .signal-card, [data-indicator], .car
       card.title        = "Click for epidemiological projection";
       card.dataset.outbreakWired = "true";
       // Try to extract current case count from card
-      const numMatch = text.match(/(\d[\d,]+)\s*(?:suspected|confirmed|cases)/i);
+      const numMatch = text.match(/(\d[\d,]+)\s*suspected/) || text.match(/(\d[\d,]+)\s*(?:confirmed|cases)/i);
       const count    = numMatch ? parseInt(numMatch[1].replace(/,/g, "")) : null;
       card.addEventListener("click", () => buildPopup("ebola", count));
     } else if (/hantavirus|andes virus|hondius/i.test(text)) {
