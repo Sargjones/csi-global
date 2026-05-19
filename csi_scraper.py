@@ -1359,9 +1359,9 @@ def main():
         print(f"\n⚠️  {alert_count} ALERT(s) active — review csi_data_latest.json")
         sys.exit(2)  # Non-zero but not 1 (reserved for errors) — GHA can check this
 
-CSI-Global scraper additions — Health & Climate sectors
+"""CSI-Global scraper additions - Health & Climate sectors
 Paste these functions into csi_scraper.py, then add both
-fetch calls inside collect_all_indicators().
+fetch calls inside collect_all_indicators()."""
 
 indicators += fetch_health_indicators()
 indicators += fetch_climate_indicators()
