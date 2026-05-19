@@ -592,13 +592,35 @@ def fetch_health_indicators():
         r = _safe_get(url)
         if r:
             text = BeautifulSoup(r.text, "html.parser").get_text(" ", strip=True)
-            hanta_data = {
-                "confirmed": _extract_number(text, [r"(\d+)\s*(?:laboratory[-\s]?)?confirmed",
-                                                     r"(\d+)\s*confirmed cases"]),
-                "deaths":    _extract_number(text, [r"(\d+)\s*deaths", r"(\d+)\s*fatalities"]),
-                "countries": _extract_number(text, [r"(\d+)\s*countries"]),
-            }
-            break
+            # Tight patterns require disease context near the number
+            # Hard cap at 500 -- cruise ship had 147 people total
+            confirmed = None
+            for pat in [
+                r"(\d{1,3})\s*(?:laboratory[- ]?)?confirmed\s*(?:cases?\s*)?(?:of\s*)?(?:hantavirus|andes|ANDV)",
+                r"(?:hantavirus|andes|ANDV)[^.]{0,80}?(\d{1,3})\s*confirmed",
+                r"total\s+of\s+(\d{1,3})\s+(?:confirmed|cases)",
+            ]:
+                m = re.search(pat, text, re.IGNORECASE)
+                if m:
+                    val = int(m.group(1))
+                    if 1 <= val <= 500:
+                        confirmed = val
+                        break
+            deaths = None
+            for pat in [
+                r"(\d{1,2})\s*deaths?[^.]{0,60}(?:hantavirus|andes|ANDV|hondius)",
+                r"(?:hantavirus|andes|ANDV)[^.]{0,80}?(\d{1,2})\s*deaths?",
+            ]:
+                m = re.search(pat, text, re.IGNORECASE)
+                if m:
+                    val = int(m.group(1))
+                    if 1 <= val <= 50:
+                        deaths = val
+                        break
+            countries = _extract_number(text, [r"(\d+)\s*countries"])
+            if confirmed:
+                hanta_data = {"confirmed": confirmed, "deaths": deaths, "countries": countries}
+                break
 
     hanta_confirmed = hanta_data.get("confirmed") or 9
     hanta_deaths    = hanta_data.get("deaths")    or 3
