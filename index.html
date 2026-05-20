@@ -923,9 +923,11 @@ function projectGrowth(profile, days) {
 // -- Popup builder -----------------------------------------------------------
 
 function buildPopup(profileKey, currentCount) {
+  // Remove any existing popup first
+  const existing = document.getElementById("outbreak-popup-root");
+  if (existing) existing.remove();
+  
   const profile = OUTBREAK_PROFILES[profileKey];
-  if (!profile) return;
-  if (currentCount) profile.currentCases = currentCount;
 
   const projections = projectGrowth(profile, 7);
   const today       = new Date();
@@ -1089,9 +1091,12 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") closeOutbrea
 // rendered cards.
 
 function attachOutbreakHandlers() {
-document.querySelectorAll(".indicator-card, .signal-card, [data-indicator], .card, div[class*='card'], div[class*='indicator']").forEach(card => {
+document.querySelectorAll(".indicator-card, .signal-card, [data-indicator], .card").forEach(card => {
     const text = card.innerText || card.textContent || "";
     if (card.dataset.outbreakWired) return;
+    // Only wire cards that are small enough to be individual indicators
+    // Skip large container divs
+    if (card.children.length > 8) return;
     if (/ebola|bundibugyo/i.test(text)) {
       card.style.cursor = "pointer";
       card.title        = "Click for epidemiological projection";
@@ -1113,7 +1118,11 @@ document.querySelectorAll(".indicator-card, .signal-card, [data-indicator], .car
 
 // Run on load and whenever the DOM changes (cards render async)
 attachOutbreakHandlers();
-const observer = new MutationObserver(attachOutbreakHandlers);
+  let wireTimer;
+  const observer = new MutationObserver(() => {
+  clearTimeout(wireTimer);
+  wireTimer = setTimeout(attachOutbreakHandlers, 300);
+});
 observer.observe(document.body, { childList: true, subtree: true });
 
 // Expose globally so CSI dashboard can call directly if needed
