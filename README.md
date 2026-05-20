@@ -5,7 +5,7 @@
 Monitors upstream supply chain signals and translates them into localized,
 actionable intelligence for communities in ODA-eligible countries.
 
-**Live dashboard:** [global.criticalto.ca](https://global.criticalto.ca) *(deploy after repo setup)*  
+**Live dashboard:** [global.criticalto.ca](https://global.criticalto.ca) 
 **Sister platform:** [data.criticalto.ca](https://data.criticalto.ca) — Toronto Infrastructure Intelligence
 
 ---
@@ -43,8 +43,8 @@ actionable intelligence for communities in ODA-eligible countries.
 ### 1. Create the GitHub repo
 
 ```
-Repo name: csi-global (or your preferred name)
-Visibility: Public (required for GitHub Pages)
+Repo name: csi-global 
+Visibility: Public 
 ```
 
 ### 2. Upload files
@@ -54,7 +54,7 @@ Create `.github/workflows/csi-scraper.yml`.
 
 ### 3. Add API keys as GitHub Secrets
 
-Go to **Settings → Secrets and variables → Actions → New repository secret**:
+ **Settings → Secrets and variables → Actions → New repository secret**:
 
 | Secret name | Where to get it | Cost |
 |---|---|---|
@@ -69,12 +69,10 @@ but AISstream gives you real vessel counts instead of GDELT news proxies.
 
 **Settings → Pages → Source: Deploy from branch → main → / (root)**
 
-Your dashboard will be live at `https://yourusername.github.io/csi-global/`
-
 ### 5. Point your domain
 
 Add a CNAME file to the repo with `global.criticalto.ca`,
-then add a CNAME record in your DNS pointing to `yourusername.github.io`.
+then add a CNAME record in your DNS pointing to `sargjones.github.io`.
 
 ---
 
@@ -151,5 +149,5 @@ index.html              <- dashboard (reads csi_data_latest.json via fetch)
 
 ---
 
-*Built by Sarah [Your Name] — Brantford, Ontario, Canada*  
+*Built by Sarah Jones G — Brantford, Ontario, Canada*  
 *Part of the Community Supply Chain Intelligence humanitarian technology initiative.*
