@@ -2,27 +2,19 @@
   "meta": {
     "platform": "Community Supply Chain Intelligence (CSI)",
     "version": "1.1",
-    "generated_utc": "2026-07-19T08:26:35.960141+00:00",
+    "generated_utc": "2026-07-19T13:25:26.507127+00:00",
     "platform_status": "alert",
     "counts": {
-      "ok": 15,
+      "ok": 17,
       "watch": 4,
-      "alert": 8,
+      "alert": 6,
       "error": 3,
       "manual": 8
     },
     "alert_summary": [
       {
-        "indicator": "Chokepoint -- Strait of Hormuz",
-        "notes": "ELEVATED: 5 shipping news items for Strait of Hormuz in past 3 days."
-      },
-      {
         "indicator": "FAO Food Price Index (FFPI)",
         "notes": "FAO FFPI: 130.3 points (June 2026)."
-      },
-      {
-        "indicator": "Health Emergency News Volume",
-        "notes": "Current: 0.4413%. 7d avg: 0.6221%. Trend: rising."
       },
       {
         "indicator": "MV Hondius -- Andes Virus (Hantavirus) Outbreak",
@@ -49,14 +41,14 @@
   "indicators": [
     {
       "indicator": "Brent Crude Price",
-      "value": 91.6,
+      "value": 91.76,
       "unit": "USD/bbl",
       "source": "OilPriceAPI",
       "status": "watch",
-      "notes": "Brent ~$91.60/bbl (WTI $88.10 + $3.5 premium). Elevated.",
+      "notes": "Brent ~$91.76/bbl (WTI $88.26 + $3.5 premium). Elevated.",
       "sector": "energy",
       "region": "global",
-      "ts": "2026-07-19T08:22:32.917133+00:00"
+      "ts": "2026-07-19T13:21:30.680354+00:00"
     },
     {
       "indicator": "LNG / Natural Gas Spot",
@@ -67,18 +59,18 @@
       "notes": "Henry Hub $1.78/MMBtu.",
       "sector": "energy",
       "region": "global",
-      "ts": "2026-07-19T08:22:33.532427+00:00"
+      "ts": "2026-07-19T13:21:31.074694+00:00"
     },
     {
       "indicator": "Chokepoint -- Strait of Hormuz",
-      "value": 5,
+      "value": 0,
       "unit": "news items (3d)",
       "source": "GDELT proxy",
-      "status": "alert",
-      "notes": "ELEVATED: 5 shipping news items for Strait of Hormuz in past 3 days.",
+      "status": "ok",
+      "notes": "No significant disruption news for Strait of Hormuz in past 3 days.",
       "sector": "chokepoint",
       "region": "global",
-      "ts": "2026-07-19T08:22:51.346354+00:00"
+      "ts": "2026-07-19T13:21:45.108139+00:00"
     },
     {
       "indicator": "Chokepoint -- Bab-el-Mandeb",
@@ -89,7 +81,7 @@
       "notes": "No significant disruption news for Bab-el-Mandeb in past 3 days.",
       "sector": "chokepoint",
       "region": "global",
-      "ts": "2026-07-19T08:23:04.567101+00:00"
+      "ts": "2026-07-19T13:21:58.856685+00:00"
     },
     {
       "indicator": "Chokepoint -- Suez Canal",
@@ -100,7 +92,7 @@
       "notes": "No significant disruption news for Suez Canal in past 3 days.",
       "sector": "chokepoint",
       "region": "global",
-      "ts": "2026-07-19T08:23:17.779614+00:00"
+      "ts": "2026-07-19T13:22:14.006515+00:00"
     },
     {
       "indicator": "Chokepoint -- Strait of Malacca",
@@ -111,7 +103,7 @@
       "notes": "No significant disruption news for Strait of Malacca in past 3 days.",
       "sector": "chokepoint",
       "region": "global",
-      "ts": "2026-07-19T08:23:32.642014+00:00"
+      "ts": "2026-07-19T13:22:30.201098+00:00"
     },
     {
       "indicator": "FAO Food Price Index (FFPI)",
@@ -122,7 +114,7 @@
       "notes": "FAO FFPI: 130.3 points (June 2026).",
       "sector": "food",
       "region": "global",
-      "ts": "2026-07-19T08:23:32.892141+00:00"
+      "ts": "2026-07-19T13:22:30.491700+00:00"
     },
     {
       "indicator": "Ethiopia -- Retail Maize Price",
@@ -133,7 +125,7 @@
       "notes": "~$45.0/100kg Maize -- 2025 estimate. Update from fpma.fao.org.",
       "sector": "food",
       "region": "East Africa",
-      "ts": "2026-07-19T08:23:32.892156+00:00"
+      "ts": "2026-07-19T13:22:30.491718+00:00"
     },
     {
       "indicator": "Nepal -- Retail Rice Price",
@@ -144,7 +136,7 @@
       "notes": "~$38.0/100kg Rice -- 2025 estimate. Update from fpma.fao.org.",
       "sector": "food",
       "region": "South Asia",
-      "ts": "2026-07-19T08:23:32.892160+00:00"
+      "ts": "2026-07-19T13:22:30.491722+00:00"
     },
     {
       "indicator": "Bolivia -- Retail Maize Price",
@@ -155,7 +147,7 @@
       "notes": "~$32.0/100kg Maize -- 2025 estimate. Update from fpma.fao.org.",
       "sector": "food",
       "region": "Andean LatAm",
-      "ts": "2026-07-19T08:23:32.892163+00:00"
+      "ts": "2026-07-19T13:22:30.491725+00:00"
     },
     {
       "indicator": "Urea Fertilizer Price (Leading Food Indicator)",
@@ -166,7 +158,7 @@
       "notes": "Manual update required. Urea leads food prices by 4-6 months.",
       "sector": "food",
       "region": "global",
-      "ts": "2026-07-19T08:23:32.892166+00:00"
+      "ts": "2026-07-19T13:22:30.491727+00:00"
     },
     {
       "indicator": "Baltic Dry Index (BDI)",
@@ -177,7 +169,7 @@
       "notes": "ERROR: BDI unavailable",
       "sector": "freight",
       "region": "global",
-      "ts": "2026-07-19T08:23:33.225464+00:00"
+      "ts": "2026-07-19T13:22:30.703157+00:00"
     },
     {
       "indicator": "GloFAS Global Water Stress Signal",
@@ -188,7 +180,7 @@
       "notes": "GloFAS: no exceptional water stress signals.",
       "sector": "water",
       "region": "global",
-      "ts": "2026-07-19T08:23:35.000240+00:00"
+      "ts": "2026-07-19T13:22:32.780865+00:00"
     },
     {
       "indicator": "Global Safe Water Access (JMP)",
@@ -199,7 +191,7 @@
       "notes": "~2.2B people lack safely managed drinking water. Update annually.",
       "sector": "water",
       "region": "global",
-      "ts": "2026-07-19T08:23:35.000253+00:00"
+      "ts": "2026-07-19T13:22:32.780880+00:00"
     },
     {
       "indicator": "Supply Shock News Volume",
@@ -210,18 +202,18 @@
       "notes": "ERROR: 429 Client Error: Too Many Requests for url: https://api.gdeltproject.org/api/v2/doc/doc?query=supply%20chain%20disruption%20energy%20food&mode=timelinevol&timespan=7d&timezoom=yes&TIMELINESMOOTH=3&format=json",
       "sector": "geopolitical",
       "region": "global",
-      "ts": "2026-07-19T08:24:16.895363+00:00"
+      "ts": "2026-07-19T13:23:12.128979+00:00"
     },
     {
       "indicator": "Energy Crisis News Volume",
-      "value": 0,
+      "value": 0.0,
       "unit": "% global coverage",
       "source": "GDELT DOC 2.0",
       "status": "ok",
-      "notes": "Current: 0.0000%. 7d avg: 0.0005%. Trend: stable.",
+      "notes": "No timeline data for theme WB_673_ENERGY.",
       "sector": "geopolitical",
       "region": "global",
-      "ts": "2026-07-19T08:25:10.759797+00:00"
+      "ts": "2026-07-19T13:23:36.260730+00:00"
     },
     {
       "indicator": "Food Crisis News Volume",
@@ -232,18 +224,18 @@
       "notes": "ERROR: 429 Client Error: Too Many Requests for url: https://api.gdeltproject.org/api/v2/doc/doc?query=food%20crisis%20famine%20food%20insecurity%20Africa%20Asia&mode=timelinevol&timespan=7d&timezoom=yes&TIMELINESMOOTH=3&format=json",
       "sector": "geopolitical",
       "region": "global",
-      "ts": "2026-07-19T08:26:06.848673+00:00"
+      "ts": "2026-07-19T13:24:28.835576+00:00"
     },
     {
       "indicator": "Health Emergency News Volume",
-      "value": 0.4413,
+      "value": 0,
       "unit": "% global coverage",
       "source": "GDELT DOC 2.0",
-      "status": "alert",
-      "notes": "Current: 0.4413%. 7d avg: 0.6221%. Trend: rising.",
+      "status": "ok",
+      "notes": "Current: 0.0000%. 7d avg: 0.0003%. Trend: stable.",
       "sector": "geopolitical",
       "region": "global",
-      "ts": "2026-07-19T08:26:32.903326+00:00"
+      "ts": "2026-07-19T13:25:24.358465+00:00"
     },
     {
       "indicator": "Population without safely managed drinking water",
@@ -254,7 +246,7 @@
       "notes": "2.2B lack safely managed drinking water (JMP 2023). Update from washdata.org annually.",
       "sector": "wash",
       "region": "global",
-      "ts": "2026-07-19T08:26:32.903379+00:00"
+      "ts": "2026-07-19T13:25:24.358524+00:00"
     },
     {
       "indicator": "Population without basic sanitation",
@@ -265,7 +257,7 @@
       "notes": "3.5B lack safely managed sanitation (JMP 2023).",
       "sector": "wash",
       "region": "global",
-      "ts": "2026-07-19T08:26:32.903383+00:00"
+      "ts": "2026-07-19T13:25:24.358528+00:00"
     },
     {
       "indicator": "Population practicing open defecation",
@@ -276,7 +268,7 @@
       "notes": "419M still practicing open defecation (JMP 2023).",
       "sector": "wash",
       "region": "global",
-      "ts": "2026-07-19T08:26:32.903387+00:00"
+      "ts": "2026-07-19T13:25:24.358531+00:00"
     },
     {
       "indicator": "WHO DON -- Pilot Region Health Signal",
@@ -287,7 +279,7 @@
       "notes": "No recent WHO DONs for pilot regions. Recent: ",
       "sector": "health",
       "region": "global",
-      "ts": "2026-07-19T08:26:33.297859+00:00"
+      "ts": "2026-07-19T13:25:24.752910+00:00"
     },
     {
       "indicator": "MV Hondius -- Andes Virus (Hantavirus) Outbreak",
@@ -298,7 +290,7 @@
       "notes": "Andes virus -- only human-to-human transmissible hantavirus. MV Hondius cruise ship departed Ushuaia, Argentina April 1 2026. 8 cases (6 confirmed, 2 probable), 3 deaths (CFR 38%) as of May 8 2026. 45-day monitoring window extends to ~June 15 2026. No antiviral treatment exists. WHO global risk: LOW.",
       "sector": "health",
       "region": "Global -- 23 nationalities, 6+ countries",
-      "ts": "2026-07-19T08:26:33.297958+00:00"
+      "ts": "2026-07-19T13:25:24.752979+00:00"
     },
     {
       "indicator": "Ethiopia -- Marburg Virus Disease Outbreak (RESOLVED Jan 2026)",
@@ -309,7 +301,7 @@
       "notes": "RESOLVED Jan 26 2026. First-ever MVD outbreak in Ethiopia. Retained for pilot region health baseline context.",
       "sector": "health",
       "region": "East Africa -- Ethiopia (pilot region)",
-      "ts": "2026-07-19T08:26:33.297964+00:00"
+      "ts": "2026-07-19T13:25:24.752985+00:00"
     },
     {
       "indicator": "Ebola -- Bundibugyo virus (DRC / Uganda)",
@@ -320,7 +312,7 @@
       "notes": "PHEIC declared May 16 2026. Suspected: 513 | Confirmed: 30 | Deaths: 100. Ituri Province DRC + Kinshasa, Goma, Kampala, Fort Portal Uganda. NO approved vaccine or therapeutic for Bundibugyo strain (CFR 25-50%). US Title 42 active: DRC/Uganda/South Sudan entry restrictions. Aid cuts caused ~3 week undetected spread.",
       "sector": "health",
       "region": "Sub-Saharan Africa",
-      "ts": "2026-07-19T08:26:33.392872+00:00"
+      "ts": "2026-07-19T13:25:25.109929+00:00"
     },
     {
       "indicator": "Ebola -- confirmed lab cases",
@@ -331,7 +323,7 @@
       "notes": "30 lab-confirmed. Initial DRC tests only detect Zaire strain, not Bundibugyo. Current numbers are a floor, not a ceiling.",
       "sector": "health",
       "region": "DRC / Uganda",
-      "ts": "2026-07-19T08:26:33.392889+00:00"
+      "ts": "2026-07-19T13:25:25.109942+00:00"
     },
     {
       "indicator": "Hantavirus -- Andes virus / MV Hondius cluster",
@@ -342,7 +334,7 @@
       "notes": "Contained cluster: 9 confirmed, 3 deaths, 12+ countries post-repatriation. MV Hondius departed Ushuaia Apr 1 2026, visited Antarctica/South Georgia/Tristan da Cunha. Andes virus = ONLY hantavirus with human-to-human transmission. CFR ~38%. No antiviral treatment. WHO global risk: LOW. Ship arrived Rotterdam May 18 2026.",
       "sector": "health",
       "region": "Multi-country (South Atlantic origin)",
-      "ts": "2026-07-19T08:26:35.082326+00:00"
+      "ts": "2026-07-19T13:25:25.945446+00:00"
     },
     {
       "indicator": "Active WHO PHEICs",
@@ -353,7 +345,7 @@
       "notes": "1 active PHEIC: Ebola/Bundibugyo (DRC+Uganda, declared May 16 2026). Hantavirus/Andes: monitoring, not declared PHEIC. COVID-19 PHEIC ended May 2023. mpox PHEIC ended Aug 2023.",
       "sector": "health",
       "region": "Global",
-      "ts": "2026-07-19T08:26:35.082343+00:00"
+      "ts": "2026-07-19T13:25:25.945459+00:00"
     },
     {
       "indicator": "BDT / USD (Bangladeshi Taka)",
@@ -364,7 +356,7 @@
       "notes": "Bangladeshi Taka at 123.12 per USD -- within normal range.",
       "sector": "currency",
       "region": "South Asia",
-      "ts": "2026-07-19T08:26:35.357802+00:00"
+      "ts": "2026-07-19T13:25:26.252533+00:00"
     },
     {
       "indicator": "KES / USD (Kenyan Shilling)",
@@ -375,7 +367,7 @@
       "notes": "Kenyan Shilling at 129.04 per USD -- within normal range.",
       "sector": "currency",
       "region": "East Africa",
-      "ts": "2026-07-19T08:26:35.357815+00:00"
+      "ts": "2026-07-19T13:25:26.252546+00:00"
     },
     {
       "indicator": "ETB / USD (Ethiopian Birr)",
@@ -386,7 +378,7 @@
       "notes": "Ethiopian Birr at 161.21 per USD -- significantly depreciated. Alert threshold: 70.00.",
       "sector": "currency",
       "region": "East Africa",
-      "ts": "2026-07-19T08:26:35.357822+00:00"
+      "ts": "2026-07-19T13:25:26.252552+00:00"
     },
     {
       "indicator": "BOB / USD (Bolivian Boliviano)",
@@ -397,7 +389,7 @@
       "notes": "Bolivian Boliviano at 6.92 per USD -- within normal range.",
       "sector": "currency",
       "region": "Andean LatAm",
-      "ts": "2026-07-19T08:26:35.357827+00:00"
+      "ts": "2026-07-19T13:25:26.252556+00:00"
     },
     {
       "indicator": "PEN / USD (Peruvian Sol)",
@@ -408,7 +400,7 @@
       "notes": "Peruvian Sol at 3.39 per USD -- within normal range.",
       "sector": "currency",
       "region": "Andean LatAm",
-      "ts": "2026-07-19T08:26:35.357832+00:00"
+      "ts": "2026-07-19T13:25:26.252560+00:00"
     },
     {
       "indicator": "MXN / USD (Mexican Peso)",
@@ -419,7 +411,7 @@
       "notes": "Mexican Peso at 17.54 per USD -- within normal range.",
       "sector": "currency",
       "region": "Latin America",
-      "ts": "2026-07-19T08:26:35.357838+00:00"
+      "ts": "2026-07-19T13:25:26.252564+00:00"
     },
     {
       "indicator": "CLP / USD (Chilean Peso)",
@@ -430,7 +422,7 @@
       "notes": "Chilean Peso at 924.02 per USD -- within normal range.",
       "sector": "currency",
       "region": "Latin America",
-      "ts": "2026-07-19T08:26:35.357843+00:00"
+      "ts": "2026-07-19T13:25:26.252567+00:00"
     },
     {
       "indicator": "NPR / USD (Nepalese Rupee)",
@@ -441,7 +433,7 @@
       "notes": "Nepalese Rupee at 153.79 per USD -- significantly depreciated. Alert threshold: 150.00.",
       "sector": "currency",
       "region": "South Asia",
-      "ts": "2026-07-19T08:26:35.357851+00:00"
+      "ts": "2026-07-19T13:25:26.252575+00:00"
     },
     {
       "indicator": "Thwaites Eastern Ice Shelf -- stability",
@@ -452,7 +444,7 @@
       "notes": "Shelf velocity: ~2,000 m/yr (tripled since 2020). BAS has pre-written collapse press release. Glacier flow +33% since 2020. Shelf collapse triggers multi-decade West Antarctic cascade. Full WAIS collapse potential: +3.3m global sea level (centuries timescale). ACUTE: Drake Passage iceberg hazard for shipping. LONG-TERM: Bangladesh, Kenya coast, Pacific ODA islands face existential risk.",
       "sector": "climate",
       "region": "Antarctica / Global",
-      "ts": "2026-07-19T08:26:35.960088+00:00"
+      "ts": "2026-07-19T13:25:26.507088+00:00"
     },
     {
       "indicator": "Iceberg A23a -- lifecycle",
@@ -463,7 +455,7 @@
       "notes": "CLOSED. A23a fully disintegrated as of April 3 2026. Was world's largest iceberg (~4,000 km2). Floating ice melt = no direct sea level contribution. Record now held by D15a, grounded on Antarctic coastline.",
       "sector": "climate",
       "region": "South Georgia / Southern Ocean",
-      "ts": "2026-07-19T08:26:35.960105+00:00"
+      "ts": "2026-07-19T13:25:26.507103+00:00"
     }
   ]
 }
